@@ -1,0 +1,243 @@
+<%- include('../user/layouts/header')%>    
+ <%- include('../user/partials/userheader')%>
+
+    <style>
+        /* Style for the table rows */
+        .order-card {
+          border-radius: 0.5rem; /* Increase border radius for each card */
+          margin-bottom: 0.5rem; /* Add a gap between cards */
+        }
+      </style>
+      <style>
+        #loading-spinner {
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 50px;
+          height: 50px;
+          border: 5px solid #ccc;
+          border-top: 5px solid #3498db;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+      
+        @keyframes spin {
+          0% { transform: translate(-50%, -50%) rotate(0deg); }
+          100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+      </style>
+      
+      <div class="container ">
+        <h2 style="padding-top: 100px;">Your Order List</h2>
+        <% if (order && order.length > 0) { %>
+          <% order.forEach(function (order) { %>
+            <div class="card order-card">
+              <div class="card-body">
+                <h5 class="card-title">Order ID: #ORD<%= order._id %></h5>
+                <p class="card-text">Payment Method: <%= order.PaymentMethod %></p>
+                <p class="card-text">Order Status: <%= order.Status %></p>
+                <p class="card-text">Payment Status: <%= order.PaymentStatus %></p>
+                <p class="card-text">Date:<%=  moment(order.OrderDate).format('lll') %></p>
+                <div class="d-flex justify-content-end">
+                  <% if (order.Status === 'Delivered') { %>
+                    <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary me-2">View Details</a>
+                    <button class="btn btn-danger me-2"  onclick="confirmReturn('<%= order._id %>')">Return</button>
+                    <button class="btn btn-warning me-2" id="downloadButton" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
+                    <div id="loading-spinner" style="display:none;"><i class="fa-solid fa-spinner"></i></div>
+
+                    <!-- Modal for Return -->
+                    <div class="modal fade" id="returnModal<%= order._id %>" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="returnModalLabel">Return Order</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                            <!-- Form for reason for return -->
+                            <form   id="returnForm<%= order._id %>">
+                              <div class="mb-3">
+                                <label for="returnReason" class="form-label">Reason for Return</label>
+                                <input type="text" class="form-control" id="returnReason" name="returnReason" required>
+                              </div>
+                              <button type="submit" class="btn btn-danger">Submit Return</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  <% } else if (order.Status === 'Order Placed' || order.Status === 'Shipped') { %>
+                    <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary me-2">View Details</a>
+                    <button class="btn btn-warning me-2" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
+                    <% if (order.Status !== 'Cancelled') { %>
+                      <button class="btn btn-warning me-2" onclick="confirmCancellation('<%= order._id %>')">Cancel Order</button>
+      
+                    <% } %>
+                  <% }else if(order.Status ==='return requested'){ %>
+                    <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary">View Details</a>
+                    <button class="btn btn-success me-2" onclick="cancelReturnRequest('<%= order._id%>')">Cancel Return Request</button>
+                    <% } else if (order.Status ==='returned'){ %>
+                      <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary me-2">View Details</a>
+                    <% } else if(order.Status === "Cancelled" || "Rejected") { %>
+                      <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary me-2">View Details</a>
+                    <% } %>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <p>You have no orders yet.</p>
+        <% } %>
+      
+        <% if (order.length > 0) { %>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <p>Showing <%= (currentPage - 1) * perPage + 1 %>-
+              <% if(currentPage === totalPages) { %>
+                <%= totalCount %>
+              <% } else { %>
+                <%= currentPage * perPage %>
+              <% } %>
+              results from <%= totalCount %></p>
+            <ul class="pagination">
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                  <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                </li>
+              <% } %>
+            </ul>
+          </div>
+        <% } else { %>
+          <p>No results found.</p>
+        <% } %>
+      </div>
+      
+      <script>
+        function confirmCancellation(orderId) {
+          Swal.fire({
+            title:'Are you sure',
+            text:'Are you sure want to cancel this order',
+            icon:'Warning',
+            showCancelButton:true,
+            confirmButtonColor:'#3085d6',
+            cancelButtonColor:'#d33',
+            confirmButtonText: 'Yes, cancel it!'
+          }).then((result) =>{
+
+            if (result.isConfirmed) {
+            // window.location.href = '/order/cancel/' + orderId;
+              $.ajax({
+                url:'/order/cancel/'+orderId,
+                type:'POST',
+                success:function(response){
+                  console.log(response);
+                  if(response.success){
+                    location.reload()
+                  }else{
+                    console.log('failed to cancel the order');
+                    swal.fire('Error','failed to cancel the order')
+                  }
+                },
+                error:function(error){
+                  console.error(error);
+                  swal.fire('Error','error during cancellation')
+                }
+              })
+             }
+          })
+         
+        }
+        </script>
+     
+     <script>
+      function confirmReturn(orderId) {
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'You are about to initiate a return.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, return it!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Show the modal for the return request
+            $(`#returnModal${orderId}`).modal('show');
+
+            $(`#returnForm${orderId}`).submit(function (e) {
+            e.preventDefault()
+            const $returnForm = $(`#returnForm${orderId}`)
+            const returnReason = $returnForm.find('#returnReason').val();
+            $.ajax({
+              url:`/order/return/${orderId}`,
+              method:'POST',
+              data:{
+                orderId:orderId,
+                returnReason:returnReason
+                },
+              success:function(response) {
+                console.log(response); 
+                if(response.success){
+                  console.log(response.success);
+                  location.reload()
+                  $(`#returnModal${orderId}`).modal('hide');
+                }
+              }
+            })
+          })
+
+          }
+        });
+      }
+      </script>
+
+      <script>
+        function cancelReturnRequest(orderId){
+          $.ajax({
+            url:`/order/cancelReturnRequest/${orderId}`,
+            method:'POST',
+            data:{
+              orderId:orderId
+            },
+            success:function(response){
+              console.log(response);
+              if(response.success){
+                console.log(response.success);
+                location.reload()
+              }
+            },
+            error:function(error){
+              console.log(error);
+            }
+          })
+        }
+      </script>
+    
+    <script>
+      function downloadInvoice(orderId){
+        document.getElementById('downloadButton').style.display ='none';
+        document.getElementById('loading-spinner').style.display = 'block';
+        $.ajax({
+          url:`/downloadInvoice/${orderId}`,
+          method:'POST',
+          data:{
+            orderId:orderId
+          },
+          success:(response)=>{
+          document.getElementById('downloadButton').style.display = 'block';
+          document.getElementById('loading-spinner').style.display = 'none';
+          window.location.href = `/download/invoice/${orderId}`
+          },
+          error:(error) =>{
+          document.getElementById('downloadButton').style.display = 'block';
+          document.getElementById('loading-spinner').style.display = 'none';
+            console.log(error);
+          }
+        })
+      }
+       </script>
+     
+
+    <%-include('../user/layouts/footer') %>

@@ -1,0 +1,174 @@
+<%- include('../user/layouts/header') %>
+<%- include('../user/partials/userheader') %>
+
+<div class="container">
+  <div class="row" style="min-height: 100vh;">
+    <h3 class="text-uppercase text-success" style="margin-top: 100px; margin-left: 65px;"><%= user.name %></h3>
+      <div class="card col-md-3 border-0">
+        
+
+        <div class="card-body text-center" >
+          <div class="d-flex justify-content-center">
+            <img
+              src="/assets/S4on1Commercial_Setup.jpg"
+              class="card-img-top rounded-circle"
+              alt="Profile Picture"
+              style="width: 150px; height: 150px;"
+            />
+          </div>
+          <% if (user) { %>
+            <p class="card-text text-black"><%= user.email %></p>
+          <% } else { %>
+            <h5 class="card-title">Type your name and update</h5>
+          <% } %>
+
+          <hr />
+          <div class="card-text col-md-12 justify-content-center border h-30 my-2">
+            <dt class="h4 p-2 fw-bold">Wallet balance</dt>
+            <% if (user) { %>
+              <p class="h4"><strong class="text-success">Rs: <%= user.WalletAmount %></strong></p>
+            <% } %>
+          </div>
+
+          <a href="/orderhistory" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
+            My orders
+          </a>
+          <a href="/coupons-and-offers" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
+            Coupons & offers
+          </a>
+          <a href="/address" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
+            Saved addresses
+          </a>
+          <a href="/add-address" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
+            Add address
+          </a>
+          <a href="/profile/change-password" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
+            Change password
+          </a>
+        </div>
+      </div>
+
+      <main class="col-md-8 col-12 border-start" >
+        
+        <span class="d-flex justify-content-start fw-bold">Your referral link :</span>
+        <div class="d-flex justify-content-start">
+          <span class="d-inline-block text-truncate text-primary" style="max-width: 200px; cursor: text;" id="referral-link">
+            localhost:3001/signup/<%= user._id %>
+          </span>
+          <button id="copyButton" class="fa fa-copy fa-xl border-0"></button>
+        </div>
+        <span id="copySuccessMessage" class="d-none fw-bold text-success"> Text copied to clipboard! </span>
+        <hr />
+
+        <form action="/edit-profile" method="post">
+          <div class="form-group">
+            <label for="Username">Username:</label>
+            <input
+              type="text"
+              name="Name"
+              class="form-control bg-light"
+              id="Username"
+              <% if (user) { %>
+                value="<%= user.name %>"
+              <% } else { %>
+                placeholder="Enter your name"
+              <% } %>
+              required
+            />
+          </div><br />
+          <div class="form-group">
+            <label for="Phone">Phone:</label>
+            <input
+              type="text"
+              name="Phone"
+              class="form-control bg-light"
+              id="Phone"
+              <% if (user) { %>
+                value="<%= user.Phone %>"
+              <% } else { %>
+                placeholder="Enter your phone and update"
+              <% } %>
+              required
+            />
+          </div><br />
+          <div class="form-group">
+            <label for="Email">Email:</label>
+            <input
+              type="email"
+              name="Email"
+              class="form-control bg-light"
+              id="Email"
+              <% if (user) { %>
+                value="<%= user.email %>"
+                readonly
+              <% } %>
+            />
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-secondary text-white">UPDATE</button>
+          </div><br />
+        </form>
+
+        <div class="bg-light p-2 m-2 border row d-flex">
+          <h3 class="mb-3">SHIPPING ADDRESS:</h3>
+          <% if (user.Address) { %>
+            <div class="form-group col-md-6">
+              <label for="housename">House name:</label>
+              <input
+                type="text"
+                name="HouseName"
+                class="form-control bg-light"
+                id="Housename"
+                value="<%= user.Address[0].AddressLane %>"
+                readonly
+              />
+            </div>
+            <div class="form-group col-md-5">
+              <label for="District">District:</label>
+              <input
+                type="text"
+                name="District"
+                class="form-control bg-light"
+                id="District"
+                value="<%= user.Address[0].City %>"
+                readonly
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <label for="Pincode">Pincode:</label>
+              <input
+                type="text"
+                name="Pincode"
+                class="form-control bg-light"
+                id="pincode"
+                value="<%= user.Address[0].Pincode %>"
+                readonly
+              />
+            </div>
+            <div class="form-group col-md-5">
+              <label for="state">State:</label>
+              <input
+                type="text"
+                name="State"
+                class="form-control bg-light"
+                id="state"
+                value="<%= user.Address[0].State %>"
+                readonly
+              />
+            </div>
+          <% } %>
+        </div>
+
+        <div class="d-flex justify-content-start mt-2">
+          <% if (user.Address) { %>
+            <a href="/edit-address/<%= user.Address[0]._id %>" class="btn btn-secondary text-white">change</a>
+          <% } else { %>
+            <a href="/add-address" class="btn btn-secondary text-white">Add an address</a>
+          <% } %>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <%- include('../user/partials/userfooter') %>
+  <%- include('../user/layouts/footer') %>
