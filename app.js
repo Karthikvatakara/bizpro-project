@@ -35,6 +35,10 @@ app.use(flash())
 app.use("/",userrouter)
 app.use("/admin",adminrouter)
 
+app.use("*", (req,res) => {
+    res.render('404')
+  })
+
 app.listen(process.env.PORT ,()=> {
     console.log("server connected");
 })

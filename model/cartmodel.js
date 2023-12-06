@@ -16,6 +16,10 @@ const cartSchema = new Schema({
 
     TotalAmount:{
         type:Number,
+    },
+    coupon:{
+        type:Schema.Types.ObjectId,
+        ref:'Coupon'
     }
     
 

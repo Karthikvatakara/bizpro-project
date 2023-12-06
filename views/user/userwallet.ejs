@@ -1,27 +1,62 @@
-<%- include('../user/layouts/header')%>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <%- include('../user/partials/userheader')%>
-    <%- include('../user/partials/usercanvas') %>
+<%- include('../user/layouts/header')%>    
+<%- include('../user/partials/userheader')%>
+<style>
+  body{
+    background:linear-gradient(130deg,rgb(56, 137, 198) , rgb(138, 138, 138));
+    color:black;
+  }
+  h2{
+    color: white;
+  }
+  .card-title{
+    color:black;
+  }
+  p{
+    color: black;
+    font-size: smaller;
+  }
+  .credited{
+    color: red;
+  }
+  .debited {
+    color:green
+  }
+</style>
 
-    <div class="card p-3 text-center">
-        <div class="wallet-header">Your Wallet Balance</div>
-        <div class="wallet-balance">₹<%=user.WalletAmount%></div>
-        <a class="btn text-dark d-flex-column  border-0">
-          <div class="wallet-header"> 
-            <!-- Refer to your friends and earn Rs:100  in each. -->
+<div class="container" style="padding-top:90px;" >
+  <div class="d-flex justify-content-center align-items-center">
+
+    <h2>Wallet Transactions</h2>
+  </div>
+
+  <% user.walletTransactions.forEach(transaction => { %>
+    <div class="row m-2 rounded shadow">
+      <div class="card">
+          <div class="card-body col-md-12 d-flex">
+              <div class="col-md-8">
+                  <h5 class="card-title" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Order ID: <%= transaction.orderId %></h5>
+                  <p>Date: <%= moment(transaction.Date).format('lll') %></p>
+                  <p>Order Details: <%= transaction.OrderDetails %></p>
+              </div>
+              <div class="text-right col-md-2">
+                  <p class="<% transaction.Status === 'Credited' ? 'credited': 'debited '%>">Status: <b><%= transaction.Status %></b></p >
+                  <p><span style="font-size: larger; font-weight: 500;">
+                    Amount: <%= transaction.Amount %>.00 /-
+                  </span></p>
+                </div>
+                <div class="col-md-2 align-items-center d-flex">
+                <div class="d-flex justify-content-center align-items-center mb-4">
+                  <% if(transaction.orderId !== 'Refferel') {%>
+                    <a href="/order/orderdetails/<%= transaction.orderId %>" class="btn btn-info">View Details</a>
+                     <%} %> 
+                </div></div>
+              </div>
+          <div class="details">
+              <!-- Additional details can be added here -->
           </div>
-            <!-- <div>
-            <h6>Your referral link : </h6>
-            <h6 class="text-primary" id="referral-link">localhost:3000/signup/<%=user._id%> </h6>
-            </div> -->
-            <!-- <div class="p-4">
-            <button id="copyButton" class="fa fa-copy fa-xl  border-0"></button>
-            </div> -->
-          <!-- <span id="copySuccessMessage" class="d-none fw-bold text-success"> Text copied to clipboard! </span> -->
-        </a> 
+        </div>
       </div>
+  <% }); %>
 
-    <%-include('../user/layouts/footer') %>
+
+<%-include('../user/layouts/footer') %>

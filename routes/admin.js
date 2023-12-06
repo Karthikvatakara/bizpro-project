@@ -8,7 +8,8 @@ const admincontroller = require('../controller/admincontroller')
 const ordercontroller = require('../controller/ordercontroller')
 // const upload = multer({dest:'uploads/'})
 const adminAuth = require('../middlewares/adminauth')
-
+const couponcontroller = require('../controller/couponcontroller')
+const admin = require('../model/adminmodel')
 
 
 router.get('/adminaddproduct',adminAuth.authmiddleware,productcontroller.getadminaddproduct)
@@ -47,15 +48,24 @@ router.post('/adminlogin',admincontroller.postadmincheck)
 router.get('/deletecategory/:id',adminAuth.authmiddleware,productcontroller.getdeletecategory)
 
 router.get('/banner',adminAuth.authmiddleware,admincontroller.getbanner)
-router.get('/addbanner',admincontroller.getaddbanner)
-router.post('/addbanner',upload.fields([{name:'Image',maxCount:1},
+router.get('/addbanner',adminAuth.authmiddleware,admincontroller.getaddbanner)
+router.post('/addbanner',adminAuth.authmiddleware,upload.fields([{name:'Image',maxCount:1},
                                         {name:'carouselImage1',maxCount:1},
-                                        {name:'carouselImage2',maxCount:1}])),admincontroller.postAddBanner
+                                        {name:'carouselImage2',maxCount:1}]),admincontroller.postAddBanner)
+router.post('/activate-banner/:id',adminAuth.authmiddleware,admincontroller.activateBanner)
+router.post('/delete-banner/:id',adminAuth.authmiddleware,admincontroller.deleteBanner)
+
+router.get('/coupons',adminAuth.authmiddleware,couponcontroller.adminCoupons)
+router.post('/addcoupon',adminAuth.authmiddleware,couponcontroller.postAddCoupon)
+
+router.get('/dashboard',adminAuth.authmiddleware,admincontroller.getdashboard)
+
+router.get('/count-orders-by-day',adminAuth.authmiddleware,admincontroller.getcount)
+router.get('/count-orders-by-month',adminAuth.authmiddleware,admincontroller.getcount)
+router.get('/count-orders-by-year',adminAuth.authmiddleware,admincontroller.getcount)
+router.get('/latestOrders',adminAuth.authmiddleware,admincontroller.getOrdersAndSellers)
+router.post('/download-sales-report',adminAuth.authmiddleware,ordercontroller.getDownloadSalesReport)
 
 router.get('/adminlogout',adminAuth.authmiddleware,admincontroller.adminlogout)
-
-
-
-
 
 module.exports = router 

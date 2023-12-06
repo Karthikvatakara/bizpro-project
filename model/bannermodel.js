@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const bannerschema = mongoose.Schema({
+const BannerSchema = mongoose.Schema({
 
     BannerName:{
         type:String,
@@ -8,12 +8,16 @@ const bannerschema = mongoose.Schema({
     Image:{
         type:String
     },
-    status:{
+    Status:{
         type:String,
-        required:true
-    }
+        default:'Disabled'
+    },
+    carosel:{
+        type:Array
+    },
+    Date:{type:Date}
 })
 
-const banner = mongoose.model('banner',bannerschema)
+const Banner = mongoose.model('banner',BannerSchema)
 
-module.exports = brand
+module.exports = Banner

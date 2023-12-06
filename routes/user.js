@@ -6,6 +6,7 @@ const cartcontroller = require('../controller/cartcontroller')
 const ordercontroller = require('../controller/ordercontroller')
 const usercontroller = require('../controller/usercontroller')
 const cart = require('../model/cartmodel')
+const couponcontroller = require('../controller/couponcontroller')
 
 router.get('/home',usercontroller.viewproduct)
 
@@ -15,8 +16,11 @@ router.post('/login',usercontroller.postlogin)
 router.get('/signup',userAuth.authmiddleware,usercontroller.signup)
 router.post('/signup',usercontroller.logged)
 
+router.get('/signup/:id',usercontroller.getreferelsignup)
+router.post('/signup/:id',usercontroller.logged)
+
 router.get('/emailverification',userAuth.authmiddleware,usercontroller.getemailverification)
-router.post('/emailverification',userAuth.userToken,usercontroller.otpAuth,usercontroller.postemailverification)
+router.post('/emailverification',usercontroller.otpAuth,usercontroller.postemailverification)
 
 router.get('/resendotp',userAuth.userToken,usercontroller.resendotp)
 
@@ -82,10 +86,17 @@ router.post('/order/cancelReturnRequest/:id',userAuth.userToken,ordercontroller.
 router.post('/review/submit',userAuth.userToken,ordercontroller.postReviewSubmit)
 
 router.get('/wallet',userAuth.userToken,usercontroller.getUserWallet)
+
 router.get('/myreviews',userAuth.userToken,ordercontroller.getMyReviews)
 
 router.post('/downloadInvoice/:id',userAuth.userToken,ordercontroller.postDownloadInvoice)
 
 router.get('/download/invoice/:id',userAuth.userToken,ordercontroller.downloadfile)
+
+router.post('/edit-profile', userAuth.userToken,usercontroller.postEditProfile)
+
+router.get('/coupons-and-offers',userAuth.userToken,usercontroller.getuserCoupons)
+router.post('/validateCoupon',couponcontroller.postValidateCoupon)
+router.post('/couponremoval',couponcontroller.postcouponremoval)
 
 module.exports = router

@@ -5,7 +5,7 @@
   </div>
 
   <div class="container-fluid">
-    <form action="/admin/addBanner" method="post" enctype="multipart/form-data">
+    <form action="/admin/addbanner" method="post" enctype="multipart/form-data">
         <!-- Banner Name Input -->
         <div class="form-group">
             <label for="bannerName">Banner Name:</label>
@@ -36,10 +36,6 @@
             <input type="file" class="form-control-file" id="carouselImage2" name="carouselImage2" accept="image/*" onchange="previewImage(this)">
         </div>
 
-        <div class="form-group">
-            <label for="carouselImage3">Carousel Image 3:</label>
-            <input type="file" class="form-control-file" id="carouselImage3" name="carouselImage3" accept="image/*" onchange="previewImage(this)">
-        </div>
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">Add Banner</button>
     </form>

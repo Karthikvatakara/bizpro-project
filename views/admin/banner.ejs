@@ -1,9 +1,10 @@
 <%- include('../admin/layouts/header')%>
 <%- include('../admin/partials/adminheader')%>
+
+
 <div class="header" style="margin-top: 80px;">
     <h1>Banners</h1>
   </div>
-  
 
   <div class="container-fluid">
     <% if (message.BannerUpdated) { %>
@@ -24,50 +25,44 @@
 
     <h2 class="mb-4">Current Banner</h2>
     <div class="mb-4">
-
-        <video autoplay muted loop class="img-fluid" style=" height: 200px;">
-                <source src="" type="video/mp4">
-            </video>
-
-            <img src="" alt="Current Banner" class="img-fluid" style="max-height: 200px;">
-
-        </div>
+   
+            <img src="/uploads/<%= currentBanner.Image %>" alt="Current Banner" class="img-fluid" style="max-height: 200px;">
+    </div>
 
     <h2 class="mb-4">All Banners</h2>
     <div class="table-responsive ">
         <table class="table table-bordered ">
             <thead>
                 <tr>
-                    <th style="color: azure;">Banner Image</th>
-                    <th  style="color: azure;">Banner Name</th>
-                    <th  style="color: azure;">Status</th>
-                    <th  style="color: azure;">Carosel</th>
-                    <th style="color: azure;">Action</th>
+                    <th>Banner Image</th>
+                    <th>Banner Name</th>
+                    <th>Status</th>
+                    <th>Carosel</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-
-                <tr>
-
-                    <td><img src="" alt="" class="img-fluid" style="max-height: 50px;"></td>
-
-                    <td><video style="max-height: 50px;" src=""></video></td>
-
-                    <td>No Image or Video</td>
-                       
+                <% banners.forEach(banner => { %>
+                    <tr>
+                        <% if (banner.Image) { %>
+                            <td><img src="/uploads/<%= banner.Image %>" alt="<%= banner.BannerName %>" class="img-fluid" style="max-height: 50px;"></td>
+                        <% } else { %>
+                            <td>No Image </td>
+                        <% } %>
             
-                        <td style="color: azure;">ghghghgh</td>
-                        <td style="color: azure;">hhghh</td>
-                        <td style="color: azure;">2</td>
+                        <td ><%= banner.BannerName %></td>
+                        <td ><%= banner.Status %></td>
+                        <td ><%= banner.carosel.length %></td>
                         <td style="color: azure;">
-                            <form action="" method="post" style="display: inline;">
+                            <form action="/admin/activate-banner/<%= banner._id %>" method="post" style="display: inline;">
                                 <button type="submit" class="btn btn-primary">Activate</button>
                             </form>
-                            <form action="" method="post" style="display: inline;">
+                            <form action="/admin/delete-banner/<%= banner._id %>" method="post" style="display: inline;">
                                 <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this banner?')">Delete</button>
                             </form>
                         </td>
                     </tr>
+                <% }); %>
             </tbody>
             
         </table>
@@ -77,6 +72,9 @@
         <a href="/admin/addBanner" class="btn btn-primary">Add New Banner</a>
     </div>
 </div>
-</body>
+
+
+
+
 <%- include('../admin/layouts/footer') %>
 

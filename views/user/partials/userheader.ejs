@@ -109,8 +109,8 @@
     <header id="header" class="site-header header-scrolled position-fixed text-black bg-light">
       <nav id="header-nav" class="navbar navbar-expand-lg px-3 mb-3">
         <div class="container-fluid">
-          <a class="navbar-brand" href="index.html">
-            <img src="/assets/logo-color.png" class="logo" style="height: 50px; width: auto;">
+          <a class="navbar-brand" href="/home" style="margin:-15px; margin-bottom:-29px ;">
+            <img src="/assets/logo-color.png" class="img-fluid" style="height: 80px;width: 100px;">
           </a>
           <button class="navbar-toggler d-flex d-lg-none order-3 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#bdNavbar" aria-controls="bdNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <svg class="navbar-icon">
@@ -150,7 +150,7 @@
                       <% if(user) { %>
                         <div class="dropdown">
                           <a href="#" class="dropdown-toggle text-decoration-none text-dark" id="usernameLink" data-bs-toggle="dropdown" aria-expanded="false">
-                              <%= user.name %> <i class="fa-solid fa-user"></i>
+                              <%= user.name %> 
                           </a>
                           <ul class="dropdown-menu" aria-labelledby="usernameLink">
                               <li><a class="dropdown-item" href="/profile">profile</a></li>
@@ -160,7 +160,7 @@
                       </div>
                         <%} else { %>
                           <a class="text-decoration-none text-dark" href="/signup">
-                              <i class="fa-solid fa-user"></i><span>
+                            
                                 <svg class="user">
                                   <use xlink:href="#user"></use>
                                 </svg>

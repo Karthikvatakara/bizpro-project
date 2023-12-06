@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt')
 const ordermodel = require('../model/ordermodel')
 const reviewModel = require('../model/reviewmodel')
 const invoice = require('../validator/easyInvoice')
+const pdf = require('../validator/pdf')
 
 const getadminorders = async(req,res) => {
     try{
@@ -128,7 +129,7 @@ const getuserordercancel = async(req,res) =>{
         console.log(Id);
         const order = await ordermodel.findOneAndUpdate({_id:Id},{Status:'Cancelled',PaymentStatus:'order cancelled'},{new:true})
         console.log(order.products);
-    }
+        }
         // console.log(Order);
         const Order = await ordermodel.findOne({_id:req.params.id})
         if(Order.PaymentMethod === 'cod'){
@@ -136,7 +137,19 @@ const getuserordercancel = async(req,res) =>{
         res.redirect('/orderhistory')
         }else if(Order.PaymentMethod === "online" || Order.PaymentMethod === "wallet"){
         await checkavailability(req.params.id)
-        const user = await usermodel.findByIdAndUpdate(req.session.user._id,{$inc:{WalletAmount:Order.TotalPrice}})
+
+        const walletTransaction = {
+            orderId  : Order._id,
+            Status: 'Credited',
+            Date:new Date(),
+            Amount: Order.TotalPrice,
+            OrderDetails:'Order Cancelled',
+            paymentMethod: Order.PaymentMethod,
+            products:Order.products
+        }
+        console.log(walletTransaction,"wallet transactions");
+        console.log("hai reached");
+        const user = await usermodel.findByIdAndUpdate(req.session.user._id,{$inc:{WalletAmount:Order.TotalPrice},$push:{walletTransactions:walletTransaction}},{new:true})
         console.log(user);
         console.log(user.WalletAmount);
         res.json({success:true,message:'order cancelled succesfully'})
@@ -187,7 +200,19 @@ const  postReturnRequestHandle = async(req,res) =>{
             const order = await ordermodel.findOne({_id:orderId}).populate('products.productId')
             const userId = order.userId
             if(order.PaymentStatus === 'paid'){
-                const user = await usermodel.findOneAndUpdate({_id:userId},{$inc:{WalletAmount:order.TotalPrice}},{new:true})
+
+                const walletTransaction = {
+                    orderId  : order._id,
+                    Status: 'Credited',
+                    Date:new Date(),
+                    Amount: order.TotalPrice,
+                    OrderDetails:'Order Returned',
+                    paymentMethod: order.PaymentMethod,
+                    products:order.products
+                }
+
+                const user = await usermodel.findOneAndUpdate({_id:userId},{$inc:{WalletAmount:order.TotalPrice},$push:{walletTransactions:walletTransaction}},{new:true})
+                console.log(user,"returned user");
                 const Order = await ordermodel.findByIdAndUpdate(orderId,{PaymentStatus:"refunded",Status:"returned"},{new:true})
 
             console.log(order.products,"nnnnnnnnnn");
@@ -276,6 +301,47 @@ const downloadfile = async(req,res) =>{
     }
 }
 
+
+const getDownloadSalesReport = async (req,res)=>{
+    console.log(req.body,"karthik");
+    try {
+      const startDate = req.body.startDate
+      const format = req.body.fileFormat
+      const endDate = req.body.endDate
+      const orders = await ordermodel.find({
+        PaymentStatus: 'paid',
+      }).populate('products.productId')
+
+      const totalSales = await ordermodel.aggregate([
+        {
+        $match:{
+          PaymentStatus: 'paid',
+        }
+    },
+    {
+      $group: {
+        _id: null,
+        totalSales: {$sum: '$TotalPrice'}
+      }
+    }
+  ])
+
+  if(format == 'pdf'){
+  const sum = totalSales.length > 0 ? totalSales[0].totalSales : 0;
+  pdf.downloadPdf(req,res,orders,startDate,endDate,totalSales)
+  }else{
+    const sum = totalSales.length > 0 ? totalSales[0].totalSales : 0;
+    pdf.downloadExcel(req,res,orders,startDate,endDate,totalSales)
+  }
+  
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+
+
 module.exports = { 
     getadminorders, 
     putupdateorderstatus,
@@ -291,5 +357,6 @@ module.exports = {
     postReviewSubmit, 
     getMyReviews,
     postDownloadInvoice,
-    downloadfile
+    downloadfile,
+    getDownloadSalesReport
     }

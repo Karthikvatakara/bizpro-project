@@ -39,12 +39,12 @@
           <a href="/address" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
             Saved addresses
           </a>
-          <a href="/add-address" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
-            Add address
+          <a href="/wallet" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
+            Wallet
           </a>
-          <a href="/profile/change-password" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
+          <!-- <a href="/profile/change-password" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
             Change password
-          </a>
+          </a> -->
         </div>
       </div>
 
@@ -53,7 +53,7 @@
         <span class="d-flex justify-content-start fw-bold">Your referral link :</span>
         <div class="d-flex justify-content-start">
           <span class="d-inline-block text-truncate text-primary" style="max-width: 200px; cursor: text;" id="referral-link">
-            localhost:3001/signup/<%= user._id %>
+            localhost:8000/signup/<%= user._id %>
           </span>
           <button id="copyButton" class="fa fa-copy fa-xl border-0"></button>
         </div>
@@ -76,7 +76,7 @@
               required
             />
           </div><br />
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label for="Phone">Phone:</label>
             <input
               type="text"
@@ -90,7 +90,7 @@
               <% } %>
               required
             />
-          </div><br />
+          </div><br /> -->
           <div class="form-group">
             <label for="Email">Email:</label>
             <input
@@ -111,7 +111,7 @@
 
         <div class="bg-light p-2 m-2 border row d-flex">
           <h3 class="mb-3">SHIPPING ADDRESS:</h3>
-          <% if (user.Address) { %>
+          <% if (user?.Address) { %>
             <div class="form-group col-md-6">
               <label for="housename">House name:</label>
               <input
@@ -119,7 +119,7 @@
                 name="HouseName"
                 class="form-control bg-light"
                 id="Housename"
-                value="<%= user.Address[0].AddressLane %>"
+                value="<%= user?.Address[0]?.AddressLane %>"
                 readonly
               />
             </div>
@@ -130,7 +130,7 @@
                 name="District"
                 class="form-control bg-light"
                 id="District"
-                value="<%= user.Address[0].City %>"
+                value="<%= user?.Address[0]?.City %>"
                 readonly
               />
             </div>
@@ -141,7 +141,7 @@
                 name="Pincode"
                 class="form-control bg-light"
                 id="pincode"
-                value="<%= user.Address[0].Pincode %>"
+                value="<%= user?.Address[0]?.Pincode %>"
                 readonly
               />
             </div>
@@ -152,23 +152,57 @@
                 name="State"
                 class="form-control bg-light"
                 id="state"
-                value="<%= user.Address[0].State %>"
+                value="<%= user?.Address[0]?.State %>"
                 readonly
               />
             </div>
           <% } %>
         </div>
 
-        <div class="d-flex justify-content-start mt-2">
+        <!-- <div class="d-flex justify-content-start mt-2">
           <% if (user.Address) { %>
-            <a href="/edit-address/<%= user.Address[0]._id %>" class="btn btn-secondary text-white">change</a>
+            <a href="/edit-address/<%= user?.Address[0]?._id %>" class="btn btn-secondary text-white">change</a>
           <% } else { %>
             <a href="/add-address" class="btn btn-secondary text-white">Add an address</a>
           <% } %>
-        </div>
+        </div> -->
       </main>
     </div>
   </div>
 
   <%- include('../user/partials/userfooter') %>
   <%- include('../user/layouts/footer') %>
+  <!-- Add this script at the end of your HTML body or in the head section -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Function to copy text to clipboard
+    function copyToClipboard(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    // Get the copy button and referral link elements
+    var copyButton = document.getElementById('copyButton');
+    var referralLink = document.getElementById('referral-link');
+    var copySuccessMessage = document.getElementById('copySuccessMessage');
+
+    // Add click event listener to the copy button
+    copyButton.addEventListener('click', function () {
+      // Copy the text in the referral link span
+      copyToClipboard(referralLink.innerText);
+
+      // Show the success message
+      copySuccessMessage.classList.remove('d-none');
+
+      // Hide the success message after 3 seconds (3000 milliseconds)
+      setTimeout(function () {
+        copySuccessMessage.classList.add('d-none');
+      }, 3000);
+    });
+  });
+</script>
+

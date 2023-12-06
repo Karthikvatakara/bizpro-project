@@ -1,6 +1,5 @@
 const categoryModel = require('../model/categorymodel')
 const brandModel = require('../model/brandmodel')
-const userModel = require('../model/usermodel')
 const cartModel = require('../model/cartmodel')
 const productModel = require('../model/productmodel')
 const usermodel = require('../model/usermodel')
@@ -11,6 +10,7 @@ const Razorpay = require('../validator/razorpay')
 const razorpay = require('razorpay')
 const crypto = require('crypto')
 const mongoose = require("mongoose");
+const { findOne } = require('../model/couponmodel')
 
 
 const getusercart = async(req,res)=> {
@@ -103,7 +103,7 @@ const updatingquantity = async (req, res) => {
         if(error){
           req.flash('error', message);
         }
-        const cart = await cartModel.findOne({userId:req.session.user._id}).populate('products.productId')
+        const cart = await cartModel.findOne({userId:req.session.user._id}).populate('products.productId').populate('coupon')
         res.render('user/cart',{user:req.session.user,cart,messages:req.flash()})
     }catch(error){
       console.log(`an error happened ${error}`);
@@ -123,7 +123,26 @@ const updatingquantity = async (req, res) => {
     try{
       const product = await cartModel.findOneAndUpdate({userId:req.session.user._id},{$pull:{products:{productId:req.params.id}}}) 
     //    console.log(product);
-    res.redirect('/cart/')
+    const cart = await cartModel.findOne({userId:req.session.user._id}).populate('coupon')
+    const Cart = await cartModel.findOne({userId:req.session.user._id}).populate('products.productId')
+    
+    // console.log(Cart.products,"removing");
+
+    
+    if(cart.coupon){
+      const minAmount = cart.coupon.minimumPurchaseAmount;
+      let totalPrice = 0;
+      for(const cartItem of Cart.products){
+        totalPrice += cartItem.productId.Price * cartItem.Quantity;
+        console.log(totalPrice,"TOTOAL");
+        console.log(minAmount,"MINIMUM");
+      }
+      if(totalPrice < minAmount) {
+        const cart = await cartModel.updateOne({ userId: req.session.user._id }, { $unset: { coupon: 1 } });
+         return res.redirect('/cart')
+      }
+    }
+    res.redirect('/cart')
     }catch(error){
         console.log(error);
     }
@@ -132,6 +151,7 @@ const updatingquantity = async (req, res) => {
   const getcheckout = async(req,res) => {
     try{
       const user = await usermodel.findById(req.session.user._id)
+      console.log(user,"mgo");
       const cart = await cartModel.findOne({userId:req.session.user._id})
       // console.log(cart.products);
       const havingProducts = cart?.products?.length || 0;
@@ -149,7 +169,13 @@ const updatingquantity = async (req, res) => {
   const postcart = async(req,res) => {
     try{
       
+      const convertNum = req.body.totalPrice
+      const TotalPrice = convertNum.replace(/[^\d.]/g, '');
+      req.body.totalPrice = parseFloat(TotalPrice)
+
+
       req.session.totalPrice = req.body.totalPrice
+      // console.log(req.session.totalPrice,"reached total price");
       const cartProduct = await cartModel.findOne({userId:req.session.user._id})
       
       let isRedirected = false
@@ -161,14 +187,14 @@ const updatingquantity = async (req, res) => {
         // console.log(Product);
 
         if(!product) {
-          req.flash('error',"product not found")
+          req.flash('err',"product not found")
           isRedirected = true;
           break;
         }
 
         if(cartquantity >Product.AvailableQuantity || Product.AvailableQuantity ==0){
           // console.log(Product.AvailableQuantity);
-          req.flash('error',"the product is out of stock")
+          req.flash('err',"the product is out of stock")
           isRedirected = true
           break;
         }
@@ -200,17 +226,17 @@ const updatingquantity = async (req, res) => {
         const Product = await productModel.findOne({_id:product.productId})
         if(!Product) {
           console.log('there is no product');
-          req.flash('error','product is not available')
+          req.flash('err','product is not available')
           redirected = true
-          res.json({status: false, url: '/cart', error: true, message:'product is not available'});   
+          res.json({status: false, url: '/cart', err: true, messages:'product is not available'});   
         }
         else if(cartQuantity > Product.AvailableQuantity || Product.AvailableQuantity == 0) {
           console.log('in else');
-          req.flash('error','products is not available')
+          req.flash('err',`only ${Product.AvailableQuantity} is in stock`)
           console.log(req.flash());
 
           redirected = true
-          res.json({status: false, url: '/cart'});   
+          res.json({status: false, url: '/cart',err:true, messages:`only ${Product.AvailableQuantity} is in stock`});   
         }
       }
 
@@ -219,6 +245,7 @@ const updatingquantity = async (req, res) => {
   
       const userId = req.session.user._id
       const products = cart.products
+      
       const TotalPrice = req.session.totalPrice
       const address = await usermodel.findOne({_id:req.session.user._id, 'Address._id':AddressId},{'Address.$':1})
       const Address = {
@@ -233,7 +260,7 @@ const updatingquantity = async (req, res) => {
       const currentDate = new Date();
       const expectedDeliveryDate = new Date(currentDate);
       expectedDeliveryDate.setDate(currentDate.getDate() + 4);
-
+      
 
       const neworders = new ordermodel({
         userId:req.session.user._id,
@@ -249,10 +276,35 @@ const updatingquantity = async (req, res) => {
     
       // console.log(neworders);
       console.log("ivide ethi karthik");
-    if(paymentMethod === 'cod'){
-      
-      const orders = await neworders.save()
 
+      async function userCouponInsert(){
+        const cart = await cartModel.findOne({ userId:req.session.user._id }).populate('coupon');
+        if(cart.coupon){
+          const user = await usermodel.findOne({_id:req.session.user._id,'usedCoupons.couponId':cart.coupon._id})
+          if(user){
+          const user = await usermodel.findOneAndUpdate({_id:req.session.user._id,'usedCoupons.couponId':cart.coupon._id},{$inc:{'usedCoupons.$.count':1}},{new:true})
+          }else{
+        const coupon = {
+          couponId:cart.coupon._id,
+          couponName:cart.coupon.couponName,
+          couponcode:cart.coupon.couponcode,
+        }
+        console.log(cart.coupon._id);
+        const updateUser = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$push:{usedCoupons:coupon}})
+        const UpdateUser = await usermodel.findOneAndUpdate(
+          {_id:req.session.user._id, 'usedCoupons.couponId': cart.coupon._id},
+          {$inc: {'usedCoupons.$.count': 1}},
+          {new: true}
+        );
+        const Cart = await cartModel.findOneAndUpdate({userId:req.session.user._id},{$unset:{coupon:1}})
+        }
+        }}
+
+    if(paymentMethod === 'cod'){
+      // console.log("safeer");
+      const orders = await neworders.save()
+     
+      userCouponInsert();
       const deletedcart = await cartModel.findByIdAndDelete(cart._id)   
     // console.log(orders);
 
@@ -272,7 +324,7 @@ const updatingquantity = async (req, res) => {
           await Product.save();
         }
       }else{
-        req.flash("error","product is not found")
+        req.flash("err","product is not found")
         res.json({status:false,url:'/cart'})
       }
     }
@@ -310,7 +362,7 @@ const updatingquantity = async (req, res) => {
       }else if(paymentMethod ==='online'){
         
         const orders = await neworders.save()  ///order is placed//
-
+        userCouponInsert();
         const orderdetails =  {
           amount:orders.TotalPrice,
           receipt:orders._id,
@@ -337,7 +389,7 @@ const updatingquantity = async (req, res) => {
               const deletedcart = await cartModel.findByIdAndDelete(cart._id)   //cart deleted//
             }
           }else{
-            req.flash("error","product is not found")
+            req.flash("err","product is not found")
             res.rediret('/cart')
           }
           console.log(order,user)
@@ -365,24 +417,35 @@ const updatingquantity = async (req, res) => {
               if(newQuantity <= 0) {
                 Product.AvailableQuantity = 0;
                 Product.Status = "OUT OF STOCK"
-                req.flash('error',"product is out of stock")
+                req.flash('err',"product is out of stock")
                 await Product.save();
               }else{
                 Product.AvailableQuantity =Product.AvailableQuantity - product.Quantity
                 await Product.save();
               }
             }else{
-              req.flash("error","product is not found")
+              req.flash("err","product is not found")
               res.json({status:false,url:'/cart'})
             }
           }
 
-         
+           userCouponInsert();
           const deletedcart = await cartModel.findByIdAndDelete(cart._id)   //cart deleted//
 
           res.json({status:true,codsuccess:true,url:'/ordersuccess'})
+
+          const walletTransaction = {
+            orderId  : orders._id,
+            Status: 'Debited',
+            Date:new Date(),
+            Amount: orders.TotalPrice,
+            OrderDetails:'Order Placed',
+            paymentMethod: orders.PaymentMethod,
+            products:orders.products
+        }
+
           const remainingAmount = WalletAmount-totalPrice
-          const user = await usermodel.findByIdAndUpdate(req.session.user._id,{WalletAmount:remainingAmount})
+          const user = await usermodel.findByIdAndUpdate(req.session.user._id,{WalletAmount:remainingAmount,$push:{walletTransactions:walletTransaction}},{new:true})
           const order = await ordermodel.findOneAndUpdate({_id:orders._id},{PaymentStatus:"paid"})
           console.log(user);
           console.log(order);
@@ -401,7 +464,7 @@ const updatingquantity = async (req, res) => {
 
   const getordersuccess = async(req,res) => {
     try{
-      const user = await userModel.findOne({_id:req.session.user._id})
+      const user = await usermodel.findOne({_id:req.session.user._id})
       res.render('user/ordersuccess',{user})
     }catch(error){
       console.log(error);

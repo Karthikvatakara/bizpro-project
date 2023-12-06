@@ -1,0 +1,108 @@
+<%- include('../admin/layouts/header')%>
+<%- include('../admin/partials/adminheader')%>
+
+<div class="container mt-5">
+    <div class="d-flex align-items-center justify-content-between m-4">
+        <h2 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Coupons</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCouponModal">Add Coupon</button>
+    </div>
+
+    <table class="table table-striped border shadow-lg">
+        <thead>
+            <tr>
+                <th>Sl no</th>
+                <th>Coupon Name</th>
+                <th>Coupon Code</th>
+                <th>Start Date</th>
+                <th>Expiry Date</th>
+                <th>DiscountAmount</th>
+                <th>Minumum Purchase Amount</th>
+            </tr>
+        </thead>
+        <% coupons.forEach((coupon) =>{ %> 
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td><%= coupon.couponName %></td>
+                <td><%= coupon.couponcode %></td>
+
+                <td><%= moment(coupon.startDate).format('ll') %> <%= moment().format('LT') %></td>
+                <td><%= moment(coupon.expiryDate).format('lll') %></td>
+                <td><%= coupon.discountAmount %></td>
+                <td><%= coupon.minimumPurchaseAmount %></td>
+            </tr>
+        </tbody>
+        <% }) %>
+    </table>
+</div>
+
+<!-- Add Coupon Modal -->
+<div class="modal fade" id="addCouponModal" tabindex="-1" role="dialog" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCouponModalLabel">Add Coupon</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Add form elements for adding a coupon -->
+                <form action="/admin/addCoupon" method="post">
+                    <div class="form-group">
+                        <label for="couponName">Coupon Name</label>
+                        <input type="text" class="form-control" id="couponName" name="couponName" placeholder="Enter coupon name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="couponCode">Coupon Code</label>
+                        <input type="text" class="form-control" id="couponcode" name="couponcode" placeholder="Enter coupon code" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiryDate">Expiry Date</label>
+                        <input type="date" class="form-control" id="expiryDate" name="expiryDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="discountAmount">Discount Amount</label>
+                        <input type="number" class="form-control" id="discountAmount" name="discountAmount" placeholder="Enter discount amount" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="usageLimit">Usage Limit</label>
+                        <input type="number" class="form-control" id="usageLimit" name="usageLimit" placeholder="Enter usage limit" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="minimumPurchaseAmount">Minimum Purchase Amount</label>
+                        <input type="number" class="form-control" id="minimumPurchaseAmount" name="minimumPurchaseAmount" placeholder="Enter minimum purchase amount" required min="0">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save Coupon</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    // Get today's date
+    const today = new Date();
+    const tomorrow = today
+
+    // Set the minimum value for the Start Date input to today
+    document.getElementById('startDate').min = formatDate(today);
+    document.getElementById('expiryDate').min = formatDate(today);
+    // Function to format the date as 'YYYY-MM-DD' (required format for input type="date")
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-based
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+</script>
+<%- include('../admin/layouts/footer') %>

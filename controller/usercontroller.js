@@ -13,17 +13,32 @@ const cartModel = require("../model/cartmodel");
 const orderModel = require("../model/ordermodel");
 const reviewModel = require("../model/reviewmodel");
 const { default: mongoose } = require("mongoose");
+const bannermodel = require('../model/bannermodel')
+const moment = require('moment')
+const couponmodel = require('../model/couponmodel')
 
 //for displaying userhome
 const viewproduct = async (req, res) => {
+
   const product = await productModel.find({ Display: "Active" });
   const category = await categoryModel.find({ Status: "Active" });
   console.log(req.session.user, "this is user");
-  if (product) {
-    res.render("user/home", { product, user: req.session.user, category });
-  } else {
-    res.render("user/home", { product, user: req.session.user, category });
+  const currentBanner = await bannermodel.findOne({Status:'Enabled'})
+  console.log(req.session.user);
+  const userEmail = req?.session?.user?.email
+  const user = await usermodel.findOne({email:userEmail})
+  if(user){
+    if (product) {
+      res.render("user/home", { product, user, category,currentBanner });
+    } else {
+      res.render("user/home", { product, user, category,currentBanner });
+    }
+  }else{
+    res.render("user/home", { product, user, category,currentBanner });
+
   }
+  
+  
 };
 
 //userlogin-get
@@ -71,9 +86,18 @@ const signup = async (req, res) => {
   res.render("user/signup", { messages: req.flash() });
 };
 
+const getreferelsignup = async(req,res) =>{
+  // console.log(req.url,"karthik");
+  req.session.url = req.url;
+  res.render('user/signup')
+}
+
 ///post signup
 const logged = async (req, res) => {
   try {
+    
+    
+
     password = req.body.password;
     const saltrounds = 10;
     const salt = await bcrypt.genSalt(saltrounds);
@@ -112,7 +136,7 @@ const logged = async (req, res) => {
                 req.flash("error", "email already exist");
                 console.log("email already exist" + error);
                 res.redirect("/signup");
-                res.send("email already exist");
+                // res.send("email already exist");
               } else {
                 const otpToBeSent = otpfunctions.generateOTP();
                 const result = otpfunctions.sendOTP(
@@ -128,11 +152,11 @@ const logged = async (req, res) => {
               res.redirect("/signup");
             }
           } else {
-            req.flash("error", "not contains number");
+            req.flash("error", "password not contains number");
             res.redirect("/signup");
           }
         } else {
-          req.flash("error", "not contains special characters");
+          req.flash("error", "password not contains special characters");
           res.redirect("/signup");
         }
       } else {
@@ -188,7 +212,7 @@ const getemailverification = async (req, res) => {
 const otpAuth = async (req, res, next) => {
   try {
     let { otp } = req.body;
-    console.log(req.session.user.email);
+    console.log(req.session.user.email,"inside the session");
 
     const matchedotprecord = await OTP.findOne({
       email: req.session.user.email,
@@ -226,11 +250,42 @@ const otpAuth = async (req, res, next) => {
 
 const postemailverification = async (req, res) => {
   try {
-    // console.log(req.session.user);
+    console.log("reached postemail");
     const user = await usermodel.create(req.session.user);
     console.log(user);
     req.session.user = user;
     req.session.userAuth = true;
+    
+    if(req.session.url && req.session.url.startsWith('/signup/')) {
+      console.log(req.session.url,"karthik brocamp");
+      const id = req.session.url.split('/').pop();
+      if(mongoose.Types.ObjectId.isValid(id)) {
+        const referenceUser = await usermodel.findOne({_id:id});
+        if(referenceUser){
+          const increment = 100;
+          // await usermodel.findOneAndUpdate({_id:id},{$inc:{WalletAmount:100}})
+          const walletTransaction = {
+            orderId  : 'Refferel',
+            Status: 'Credited',
+            Date:new Date(),
+            Amount: increment,
+            OrderDetails:'referrel',
+            
+        }
+        console.log(walletTransaction,"wallet transactions");
+        console.log("hai reached");
+        const user = await usermodel.findByIdAndUpdate(id,{$inc:{WalletAmount:increment},$push:{walletTransactions:walletTransaction}},{new:true})
+
+
+
+        }else{
+          console.log("no refernce user found");
+        }
+      }else{
+        console.log("invalid id format");
+    }
+    }
+  
 
     if (user) {
       res.redirect("/home");
@@ -661,11 +716,33 @@ const getaddaddresscheckout = async (req, res) => {
 const getUserWallet = async (req, res) => {
   try {
     const user = await usermodel.findOne({ _id: req.session.user._id });
-    res.render("user/userwallet", { user });
+    
+    res.render("user/userwallet", { user,moment});
   } catch (error) {
     console.log(error);
   }
 };
+
+const postEditProfile = async(req,res) =>{
+  try{
+    console.log(req.body);
+    console.log(req.body.Name);
+    const user = await usermodel.findOneAndUpdate({_id:req.session.user._id},{name:req.body.Name})
+    res.redirect('/profile')
+  }catch(error){
+    console.log(error);
+  }
+}
+
+const getuserCoupons = async(req,res) =>{
+  try{
+    const user = await usermodel.findOne({_id:req.session.user._id})
+    const offers = await couponmodel.find({})
+    res.render('user/usercoupons',{user,offers,moment})
+  }catch(error){
+    console.log(error);
+  }
+}
 
 module.exports = {
   viewproduct,
@@ -693,4 +770,7 @@ module.exports = {
   getaddaddresscheckout,
   getUserWallet,
   getaddress,
+  postEditProfile,
+  getuserCoupons,
+  getreferelsignup
 };

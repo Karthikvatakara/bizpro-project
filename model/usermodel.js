@@ -34,7 +34,16 @@ const Userschema = mongoose.Schema( {
      WalletAmount:{
         type:Number,
         default:0
-     }
+     },
+     walletTransactions:{
+        type:Array,
+     },
+     usedCoupons:[{
+        couponId:{type:mongoose.Types.ObjectId},
+        couponName:{type:String},
+        couponcode:{type:String},
+        count:{type:Number}
+     }]
 })
 
 module.exports = mongoose.model("user" , Userschema)

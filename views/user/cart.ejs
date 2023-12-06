@@ -2,7 +2,7 @@
 <%- include('../user/partials/userheader')%>  
 
 
-      <% let totalPrice = 0; %>
+  <% let totalPrice = 0; %>
 <!-- cart + summary -->
 
 <section class="bg-light">
@@ -10,14 +10,15 @@
     <div class="container ">
       <div class="row ">
         <!-- cart -->
+        <div class="col-md-8"></div>
       <div class="row mt-5 ">
-        <div class="col-lg-8 mt-5">
-          <div class="card border shadow-0 ">
+        <div class="col-md-9 mt-5">
+          <div class="card border p-3 shadow-0 ">
             <div class=" ms-1">
               <h4 class="card-title mb-4">Your shopping cart</h4>
               <%if(cart && cart.products && cart.products.length > 0) { %> 
                 <% cart.products.forEach(function (cartItem) { %>
-                  <div class="card border shadow-0">
+                  <div class="card p-3 border shadow-0">
               <div class="row gy-3 mb-4">
                 <div class="col-lg-5 d-flex align-items-center">
                   <div class="me-lg-5">
@@ -42,7 +43,7 @@
                         class="btn btn-primary decrease-quantity"
                         data-product-id="<%=cartItem.productId._id%>"
                         type="button"
-                        onclick="updateQuantity('<%= cartItem.productId._id %>',-1,'<%=cartItem.Quantity%>')"
+                        
                       >
                         -
                       </button>
@@ -60,7 +61,7 @@
                         class="btn btn-primary increase-quantity"
                         data-product-id="<%=cartItem.productId._id%>"
                         type="button"
-                        onclick="updateQuantity('<%= cartItem.productId._id %>',1,'<%= cartItem.Quantity %>')"
+                        
                       >
                         +
                       </button>
@@ -84,6 +85,9 @@
                 <div
                   class="col-lg col-sm-6 d-flex justify-content-sm-center justify-content-md-start justify-content-lg-center justify-content-xl-end mb-2"
                 >
+                <!--  -->
+                <div><p style="color: red;"><%= messages.error %></p></div> 
+                <!--  -->
                 <div class="float-md-end">
                   <strong
                   class="card-text text-center text-danger out-of-stock-message"
@@ -99,21 +103,22 @@
                     ></a>
                     <a
                       href="/removefromcart/<%=cartItem.productId._id%>"
-                      class="btn btn-light border text-danger icon-hover-danger"
+                      class="btn btn-light border text-danger icon-hover-danger" onclick="confirmRemoval(event,'<%= cartItem.productId._id %>')"
                     >
                       Remove</a
                     >
-                    <div><p style="color: red;"><%= messages.error %></p></div>
+                    <!--  -->
                     <div>
-                      <% if(cartItem.productId.AvailableQuantity === 0){ %>
+                      <% if(cartItem.productId.AvailableQuantity === 0 || cartItem.productId.AvailableQuantity< cartItem.Quantity ){ %>
                         <p style="color: red;"><%= messages.err %></p></div>
                         <% } %>
                   </div>
                 </div>
               </div>
             </div>
-              <% totalPrice += cartItem.productId.DiscountAmount *
-              cartItem.Quantity;%> <% }); %> <% } else { %>
+          </div>
+              <% }) %>
+               <% } else { %>
               <p>Your shopping cart is empty.</p>
               <a href="/usershop" class="btn btn-info">Go To Shop</a>
               <% } %>
@@ -123,60 +128,83 @@
               <p>
                 <i class="fas fa-truck text-muted fa-lg"></i> Free Delivery
                 within 1-2 weeks
-              </p>
+              </p>     
               <p class="text-muted"></p>
             </div>
           </div>
         </div>
-
-        <div class="col-lg-3 col-md-3 mt-5">
-          <div class="card mb-3 border shadow-0">
-            <div class="card-body">
-                <div class="form-group">
-                  <label class="form-label">Have coupon?</label>
-                  <div class="input-group">
+     
+      <div class="col-md-3 mt-5">
+        <div class="card mb-3 border shadow-0">
+          <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Have coupon?</label>
+                <div id="flashMessage" class="alert alert-danger" style="display: none;"></div>
+                <div id="successCoupon" class="text-success" style="display: none;"></div>
+                <div class="input-group">
+                  <% if(cart?.coupon){ %>
                     <input
                       type="text"
                       class="form-control border"
-                      name=""
+                      id="couponCodeInput"
                       placeholder="Coupon code"
+                      value=<%= cart.coupon.couponcode %>
                     />
-                    <button class="btn btn-light border">Apply</button>
-                  </div>
+                  <%}else{%>
+                    <input
+                      type="text"
+                      class="form-control border"
+                      id="couponCodeInput"
+                      placeholder="Coupon code"
+                    />    
+                    <%}%>
+                  <button class="btn btn-light border" type="button" id="applyCouponBtn" >Apply</button>
                 </div>
-            </div>
+              </div>
           </div>
+        </div>
 
-          <div class="card shadow-0 border">
-            <div class="card-body">
-              <div class="d-flex justify-content-between">
-                <p class="mb-2">Total price:</p>
-                <div id="sub-total"></div>
-              </div>
-              <div class="d-flex justify-content-between">
-                <p class="mb-2">Discount:</p>
-                <p class="mb-2 text-success">--</p>
-              </div>
-              <div class="d-flex justify-content-between">
-                <p class="mb-2">TAX:</p>
-                <p class="mb-2">--</p>
-              </div>
-              <hr />
-              <div class="d-flex justify-content-between">
-                <p class="mb-2">Total price:</p>
-                    <input type="text" id="totalAmountCell" class="transparent-input" name="totalPrice" readonly>
-                </p>
-              </div>
+        <div class="card shadow-0 border">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <p class="mb-2">Total price:</p>
+              <div id="sub-total"></div>
+            </div>
+            <div class="d-flex justify-content-between">
+              <p class="mb-2">Discount:</p>
+              <% if(cart?.coupon){%>
+                <input type="number" id="discountAmountcell" value="<%= cart.coupon.discountAmount%>">
+              <% }else{%>
+                <input type="number" id="discountAmountcell" value="0.00">
+              <%}%>
+            </div>
+            <div class="d-flex justify-content-between">
+              <p class="mb-2">TAX:</p>
+              <p class="mb-2">--</p>
+            </div>
+            <hr />
+            <div class="d-flex justify-content-between">
+              <p class="mb-2">Total price:</p>
+              
+                  <input type="number" id="totalAmountCell" class="transparent-input" name="totalPrice" readonly>
+                  <% if(cart?.coupon){%>
+                    <input type="hidden" id="minAmount" value="<%= cart.coupon.minimumPurchaseAmount %>">
+                  <%}else{%>
+                    <input type="hidden" id="minAmount" value="">
+                  <%}%>
+                  
+                 
+              </p>
+            </div>
 
-              <div class="mt-3">
-                <button type="submit" class="btn btn-success w-100 shadow-0 mb-2">
+            <div class="mt-3">
+              <button type="submit" class="btn btn-success w-100 shadow-0 mb-2">
 
-                    Make Purchase
-                </button>
-                <a href="/homepage" class="btn btn-light w-100 border mt-2">
-                  Back to shop
-                </a>
-              </div>
+                  Make Purchase
+              </button>
+              <a href="/usershop" class="btn btn-light w-100 border mt-2">
+                Back to shop
+              </a>
             </div>
           </div>
         </div>
@@ -217,16 +245,21 @@
 <!-- Footer -->
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
 
-document.addEventListener("DOMContentLoaded", () => {
+  const applyCouponBtn = document.getElementById("applyCouponBtn");
+  applyCouponBtn.addEventListener("click", function(event) {
+  applyCoupon();
+  event.preventDefault();
+  });
+
     const decreaseButtons = document.querySelectorAll(".decrease-quantity");
     const increaseButtons = document.querySelectorAll(".increase-quantity");
 
     // Function to update total amount
     function updateTotalAmount() {
       let totalAmount = 0;
-
-      // Get all product rows
+      const couponValue = document.getElementById('couponCodeInput')
       const productRows = document.querySelectorAll(".row.gy-3.mb-4");
       productRows.forEach((row) => {
         const productId = row
@@ -242,17 +275,45 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         totalAmount += productAmount;
-      });
+      })
+      console.log(totalAmount,"totalamount displayed");
+      const minAmount = document.getElementById('minAmount').value
+     
+      console.log(minAmount,"minimum amounttttt");
+            if(minAmount!==""){
+              console.log(minAmount,"minimum amount new");
+              console.log(totalAmount,"total amnt");
+            validateCouponAndUpdateTotal(totalAmount);
+            }else{
+              console.log(couponValue.value,'coupon valuee');
+              if(couponValue.value){
+              const DiscountAmount = document.getElementById('discountAmountcell')
+              const discountAmount = parseFloat(DiscountAmount.textContent)
+              console.log(discountAmount,"intervvvv");
+              const totalPrice = totalAmount-discountAmount
+              console.log(totalPrice,"jabir");
+              totalAmountCell.value =parseInt(totalPrice);
+              const subTotal = document.getElementById("sub-total");
+              subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
+              const hiddenTotalAmount = document.getElementById('hiddenTotalAmount');
+              }else{
+                const totalAmountCell = document.getElementById("totalAmountCell");
+                const subTotal = document.getElementById("sub-total");
+                subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
+                totalAmountCell.value = totalAmount.toFixed(2)
+              }
+              // const DiscountAmount = document.getElementById('discountAmountcell')
+              // const discountAmount = parseFloat(DiscountAmount.textContent)
+              // console.log(discountAmount,"intervvvv");
+              // const totalPrice = totalAmount-discountAmount
+              // console.log(totalPrice,"jabir");
+              // totalAmountCell.value =parseInt(totalPrice);
+              // const hiddenTotalAmount = document.getElementById('hiddenTotalAmount');
+            }
 
-
-      // Update the total amount in the HTML
-      const totalAmountCell = document.getElementById("totalAmountCell");
-      const subTotal = document.getElementById("sub-total");
-      totalAmountCell.value = `${totalAmount.toFixed(2)}`;
-      subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
-      const hiddenTotalAmount = document.getElementById('hiddenTotalAmount');
-      hiddenTotalAmount.value = totalAmount.toFixed(2);
+      // hiddenTotalAmount.value = totalAmount.toFixed(2);  
     }
+
 
     // Function to send AJAX request to update quantity
     async function updateQuantity(productId, change) {
@@ -280,7 +341,9 @@ document.addEventListener("DOMContentLoaded", () => {
             productAmount.textContent = existingValue * data.newQuantity;
 
             // Calculate and update the total amount
+            console.log("heree");
             updateTotalAmount();
+           
           }
         } else {
           console.error("Error updating quantity:", response.statusText);
@@ -290,28 +353,103 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Add event listeners to decrease buttons
+
+    async function validateCouponAndUpdateTotal(totalAmount){
+      try{ 
+        const minAmount =document.getElementById('minAmount').value
+        console.log(minAmount,"karthik");
+        // const totalAmountValue = document.getElementById('totalAmountCell').value
+        // const totalAmount = parseFloat( totalAmountValue.replace(/[^0-9.]/g, ''))
+
+        console.log(totalAmount,"total amount consolled");
+        console.log(minAmount,'minimum amouont');
+        if(totalAmount < minAmount){
+      
+          const swalResult = await Swal.fire({ 
+          icon: 'error',
+          title: 'Your coupon is lost',
+           text: `The minimum amount for your coupon is ${minAmount} rupees.`,
+          showConfirmButton: false,
+          toast: true,
+          position: 'center', // You can adjust the position
+          timer: 2000, // Set the timer for 2000 milliseconds (2 seconds)
+          timerProgressBar: true, // Show a progress bar for the timer
+        });
+
+        const couponField = document.getElementById('couponCodeInput')
+        let couponcode = couponField.value
+        $.ajax({
+        url: '/couponremoval', 
+         method: 'POST', 
+        contentType: 'application/json',
+        data: JSON.stringify({ couponcode }), 
+        success: function (response) {
+        if(response.success){
+          console.log("jjjhhhhh");
+         
+          const totalAmountCell = document.getElementById("totalAmountCell");
+          const subTotal = document.getElementById("sub-total");
+          subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
+          totalAmountCell.value = (totalAmount.toFixed(2))
+          const minAmount = document.getElementById('minAmount');
+          minAmount.value = '';
+          const DiscountAmount = document.getElementById('discountAmountcell')
+          DiscountAmount.value = (0.00.toFixed(2))
+          const coupon = document.getElementById('couponCodeInput')
+          coupon.value =""
+        }else{
+          console.log("hi iam karthik");
+        }
+        },
+        error: function (error) {
+        console.error('Error sending server request:', error);
+        // Handle errors if needed
+       },
+        });
+        }else{
+          console.log("reached in else condition");
+          const DiscountAmount = document.getElementById('discountAmountcell')
+          const discountAmount = parseFloat(DiscountAmount.value)
+          console.log(discountAmount,"discount amount in validateCouponAndUpdateTotal");
+          const subTotal = document.getElementById("sub-total");
+          subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
+          const subAmount = parseFloat(subTotal.textContent.replace(/[^0-9.]/g, ''))
+          console.log(subAmount,"subtotal value");
+          const totalAmountCell = document.getElementById("totalAmountCell");
+          console.log(subAmount,"it is subtotal");
+          console.log(parseFloat(DiscountAmount.value),"it is discountamount");
+          console.log(subAmount-DiscountAmount.value)
+          totalAmountCell.value = (subAmount - DiscountAmount.value).toFixed(2)
+
+ 
+          
+        }
+      }catch(error){
+        console.log(error);
+      }
+    }
+
+
     decreaseButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const productId = button.getAttribute("data-product-id");
         const quantityInput = document.getElementById(`count_${productId}`);
         const quantity = parseInt(quantityInput.value, 10);
         const availableQuantity = parseInt(quantityInput.getAttribute("data-available-quantity"), 10);
-        
+        console.log(quantity,"quantityy");
+        console.log(availableQuantity,"availablequantityy");
         if (quantity === 1) {
-          // Prevent further decrease when quantity is 1
           return;
         }
-        if (quantity <= availableQuantity) {
-          const outOfStockMessage = document.querySelector(`#outOfStockMessage_${productId}`);
-            outOfStockMessage.style.display = "none";
-          }
         updateQuantity(productId, -1);
-      });
+        
+
+      });  
     });
 
+
     increaseButtons.forEach((button) => {
-      button.addEventListener("click", () => {
+      button.addEventListener("click", async () => {
         const productId = button.getAttribute("data-product-id");
         const quantityInput = document.getElementById(`count_${productId}`);
         const quantity = parseInt(quantityInput.value, 10);
@@ -324,37 +462,98 @@ document.addEventListener("DOMContentLoaded", () => {
           if (outOfStockMessage) {
             outOfStockMessage.style.display = "block";
           }
-
-          // Prevent further increase
           return;
         }
-        updateQuantity(productId, 1);
+        await updateQuantity(productId, 1);
       });
     });
 
     updateTotalAmount();
-  });
 
 
 
-// document.addEventListener('DomcontentLoaded',()=>{
-//   const decreaseButtons = document.querySelectorAll('.decrease-quantity')
-//   const increaseButtons = document.querySelectorAll('.increse-quantity')
 
-//   decreaseButtons.forEach((button)=>{
-//     button.addEventListener('click',()=>{
-//       const productId = button.getAttribute('data-product-id')
-//       const quantityInput = button.getElementById(`count_${productId}`)
-//       const quantity = parseInt(quantityInput.value,10)
-//       const AvailableQuantity = parseInt(quantityInput.getAttribute('data-available-quantity'),10)
+  function confirmRemoval(event,productId){
+    event.preventDefault();
+    
 
-//       if(quantity == 1){
-//         return
-//       }
-//       if(quantity >)
-//     })
-//   })
-// })
+    swal.fire({
+      title:'Are you sure?',
+      text:'You are about yo remove this item from your cart!',
+      icon:'warning',
+      showCancelButton:true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, remove it!'
+    }).then((result) =>{
+      if(result.isConfirmed) {
+        window.location.href = `/removefromcart/${productId}`
+      }
+    })
+  }
+
+  
+  // const subTotal = document.getElementById('sub-total');
+  function applyCoupon() {
+    const couponCode = $('#couponCodeInput').val()
+    event.preventDefault();
+    const subTotal =document.getElementById('sub-total').textContent
+    const numericPart = parseFloat(subTotal.replace(/[^0-9.]/g, ''))
+    // console.log( subTotal.replace(/[^0-9.]/g, ''));
+    console.log(numericPart,'subtotal');
+    console.log(couponCode,"couponcode");
+      console.log('here');
+
+      $.ajax({
+          url: '/validateCoupon', 
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ couponCode,numericPart}),
+          success: function (response) {
+            const flashMessageDiv = $('#flashMessage');
+            flashMessageDiv.hide(); 
+            
+            console.log('succeeee');
+            if (response.success) {
+              console.log(response);
+              
+              Swal.fire({
+              title: "Applied coupon!",
+              text: `Applied ${couponCode} couponcode`,
+              icon: "success"
+              });
+              const minAmount = document.getElementById('minAmount');
+              minAmount.value = response.coupon.minimumPurchaseAmount;
+              console.log(minAmount.value,"hiddenfield minamount value");
+
+              const discountAmount = response.coupon.discountAmount
+              const DiscountAmount = document.getElementById("discountAmountcell");
+              DiscountAmount.value = (discountAmount.toFixed(2))
+              console.log(DiscountAmount.value,"consolling discount amount");
+
+              DiscountAmount.style.display = 'block';
+              updateTotalAmount()
+             
+            }else{
+              const DiscountAmount = document.getElementById("discountAmountcell");
+              DiscountAmount.value = (0.00.toFixed(2))
+              const successCouponDiv = $('#successCoupon');
+              successCouponDiv.hide();
+              
+              flashMessageDiv.text(response.error);
+              flashMessageDiv.show(); // Show the flash message
+              ;
+            }
+            
+          },
+          error: function (error) {
+              console.error('Error applying coupon:', error);
+              // You can handle errors and show an error message
+          },
+      });
+  }
+})
 
 </script>
+
 <%- include('../user/layouts/footer') %>
