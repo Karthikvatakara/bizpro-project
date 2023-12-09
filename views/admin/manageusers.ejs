@@ -1,8 +1,7 @@
-
 <%- include('../admin/layouts/header')%>
 <%- include('../admin/partials/adminheader')%>
 
-<div class="container">
+<div class="container mt-5 pt-2">
     <div class="d-flex justify-content-between align-items-center">
         <h2>USER LIST</h2>
         <form action="/admin/userlist" method="get" class="form-group d-flex">
@@ -28,7 +27,7 @@
             <tbody>
                 <% users.forEach(user => { %>
                     <tr>
-                      <td><%= user._id %></td>
+                      <td>USR<%= user.userUuid %></td>
                       <td><%= user.name %></td>
                       <td><%= user.Status %></td>
                       <td>
@@ -65,4 +64,5 @@
         <p>No results found.</p>
       <% } %>
 </div>
+<%- include('../admin/layouts/footer') %>
 

@@ -158,7 +158,11 @@
                       placeholder="Coupon code"
                     />    
                     <%}%>
-                  <button class="btn btn-light border" type="button" id="applyCouponBtn" >Apply</button>
+                    <% if(cart?.coupon){%>
+                      <button class="btn btn-light border" type="button" id="applyCouponBtn" >Remove</button>
+                    <%}else{%>
+                      <button class="btn btn-light border" type="button" id="removeCouponBtn" >Apply</button>
+                    <%}%>
                 </div>
               </div>
           </div>
@@ -173,16 +177,12 @@
             <div class="d-flex justify-content-between">
               <p class="mb-2">Discount:</p>
               <% if(cart?.coupon){%>
-                <input type="number" id="discountAmountcell" value="<%= cart.coupon.discountAmount%>">
+                <input type="number" class="border-none" id="discountAmountcell" value="<%= cart.coupon.discountAmount%>" readonly style="width: 85px;border: 0; ">
               <% }else{%>
-                <input type="number" id="discountAmountcell" value="0.00">
+                <input type="number" class="text-end" id="discountAmountcell" value="0.00" readonly style="width: 85px;border: 0; ">
               <%}%>
             </div>
-            <div class="d-flex justify-content-between">
-              <p class="mb-2">TAX:</p>
-              <p class="mb-2">--</p>
-            </div>
-            <hr />
+            <hr/>
             <div class="d-flex justify-content-between">
               <p class="mb-2">Total price:</p>
               
@@ -365,16 +365,18 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log(minAmount,'minimum amouont');
         if(totalAmount < minAmount){
       
-          const swalResult = await Swal.fire({ 
-          icon: 'error',
-          title: 'Your coupon is lost',
+          const swalResult = await Swal.fire({
+           icon: 'error',
+           title: 'Your coupon is lost',
            text: `The minimum amount for your coupon is ${minAmount} rupees.`,
-          showConfirmButton: false,
-          toast: true,
-          position: 'center', // You can adjust the position
+           showConfirmButton: false,
+           toast: true,
+           position: 'center', // You can adjust the position
           timer: 2000, // Set the timer for 2000 milliseconds (2 seconds)
           timerProgressBar: true, // Show a progress bar for the timer
-        });
+          });
+
+        
 
         const couponField = document.getElementById('couponCodeInput')
         let couponcode = couponField.value
@@ -383,10 +385,12 @@ document.addEventListener("DOMContentLoaded", function() {
          method: 'POST', 
         contentType: 'application/json',
         data: JSON.stringify({ couponcode }), 
-        success: function (response) {
+        success:  function (response) {
         if(response.success){
           console.log("jjjhhhhh");
          
+        
+
           const totalAmountCell = document.getElementById("totalAmountCell");
           const subTotal = document.getElementById("sub-total");
           subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
@@ -553,6 +557,8 @@ document.addEventListener("DOMContentLoaded", function() {
       });
   }
 })
+
+
 
 </script>
 

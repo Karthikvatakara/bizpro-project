@@ -45,8 +45,8 @@
     </div>
   </div>
   
-<div class="header" style="margin-top: 80px">
-  <h1>Admin Dashboard</h1>
+<div class="header" style="margin-top: 5px">
+  <h1 class="text-black">Admin Dashboard</h1>
 </div>
 <div class="text-end">
     <button class="btn btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#salesReportModal">Sales Report</button>
@@ -111,7 +111,6 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Product Image</th>
                                 <th>Product</th>
                                 <th>Product Name</th>
                                 <th>Price</th>
@@ -327,12 +326,12 @@ async function fetchSalesData(timeInterval) {
 
     bestSellersData.forEach((seller) => {
         const row = bestSellersTable.insertRow();
-        const productImageCell = row.insertCell(0);
-        const productCell = row.insertCell(1);
-        const productNameCell = row.insertCell(2);
-        const priceCell = row.insertCell(3);
-        const statusCell = row.insertCell(4);
-        const salesCell = row.insertCell(5);
+        // const productImageCell = row.insertCell(0);
+        const productCell = row.insertCell(0);
+        const productNameCell = row.insertCell(1);
+        const priceCell = row.insertCell(2);
+        const statusCell = row.insertCell(3);
+        const salesCell = row.insertCell(4);
 
         // const imgElement = document.createElement("img");
         // const imageUrl = "/uploads/" + seller.productDetails.images[0];

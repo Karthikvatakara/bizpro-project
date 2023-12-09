@@ -43,7 +43,10 @@ const Userschema = mongoose.Schema( {
         couponName:{type:String},
         couponcode:{type:String},
         count:{type:Number}
-     }]
+     }],
+     userUuid:{
+        type:String
+     }
 })
 
 module.exports = mongoose.model("user" , Userschema)

@@ -14,8 +14,8 @@ const pdf = require('../validator/pdf')
 const getadminorders = async(req,res) => {
     try{
         const page = parseInt(req.query.page) || 1; // Current page (default to 1)
-        const perPage = parseInt(req.query.limit) || 10;    
-        const order = await ordermodel.find().sort({_id:-1})
+        const perPage = parseInt(req.query.limit) || 10; 
+        const order = await ordermodel.find().limit(perPage).sort({_id:-1})
 
         const totalCount = await ordermodel.countDocuments();
         const returnedCount = await ordermodel.aggregate([{$match:{Status:'return requested'}},{$count:'count'}])
@@ -134,7 +134,7 @@ const getuserordercancel = async(req,res) =>{
         const Order = await ordermodel.findOne({_id:req.params.id})
         if(Order.PaymentMethod === 'cod'){
         await checkavailability(req.params.id);
-        res.redirect('/orderhistory')
+        res.json({success:true,message:'order cancelled succesfully'})
         }else if(Order.PaymentMethod === "online" || Order.PaymentMethod === "wallet"){
         await checkavailability(req.params.id)
 
@@ -308,24 +308,31 @@ const getDownloadSalesReport = async (req,res)=>{
       const startDate = req.body.startDate
       const format = req.body.fileFormat
       const endDate = req.body.endDate
-      const orders = await ordermodel.find({
-        PaymentStatus: 'paid',
-      }).populate('products.productId')
 
+      const orders = await ordermodel.find({
+            PaymentStatus: 'paid',
+            OrderDate: { $gte: startDate, $lte: endDate } // Added condition for OrderDate
+        }).populate('products.productId');
+
+
+      console.log(startDate,"stardate of report");
+      console.log(endDate,"enddate of report");
       const totalSales = await ordermodel.aggregate([
         {
-        $match:{
-          PaymentStatus: 'paid',
+            $match: {
+                PaymentStatus: 'paid',
+                OrderDate: { $gte: new Date(startDate), $lte: new Date(endDate) }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalSales: { $sum: '$TotalPrice' }
+            }
         }
-    },
-    {
-      $group: {
-        _id: null,
-        totalSales: {$sum: '$TotalPrice'}
-      }
-    }
-  ])
-
+    ]);
+    
+console.log(totalSales,"iiiiiii");
   if(format == 'pdf'){
   const sum = totalSales.length > 0 ? totalSales[0].totalSales : 0;
   pdf.downloadPdf(req,res,orders,startDate,endDate,totalSales)

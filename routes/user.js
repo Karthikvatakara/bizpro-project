@@ -99,4 +99,5 @@ router.get('/coupons-and-offers',userAuth.userToken,usercontroller.getuserCoupon
 router.post('/validateCoupon',couponcontroller.postValidateCoupon)
 router.post('/couponremoval',couponcontroller.postcouponremoval)
 
+router.post('/home/search',usercontroller.navbarsearch)
 module.exports = router

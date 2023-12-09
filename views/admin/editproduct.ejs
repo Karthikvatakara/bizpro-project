@@ -54,7 +54,7 @@
                                 value="<%=product.specification2%>"
                                 class="form-control bg-light"
                                 name="Specification2"
-                                id="productSpecification"
+                                id="productSpecification2"
                                 placeholder="Enter product Specification"
                                 required
                             ><br>
@@ -64,7 +64,7 @@
                                 value="<%=product.specification3%>"
                                 class="form-control bg-light"
                                 name="Specification3"
-                                id="productSpecification"
+                                id="productSpecification3"
                                 placeholder="Enter product Specification"
                                 required
                             ><br>
@@ -142,29 +142,6 @@
                         </div>
 
 
-                        <!-- <div class="border p-3 mb-3">
-                            <h2>Variations</h2>
-                            <div>
-                                <input type="radio" name="productType" id="watchesRadio" value="watches"> Watches
-                                <input type="radio" name="productType" id="perfumesRadio" value="perfumes"> Perfumes
-                            </div>
-                            <div id="watchColorInput" style="display: none;">
-                                <label for="watchColors">Enter Watch Colors:</label>
-                                <input type="text" name="watches" id="watchColors">
-                            </div>
-                            <div id="perfumeQuantityDropdown" style="display: none;">
-                                <label for="perfumeQuantity">Select Perfume Quantity:</label>
-                                <select id="perfumeQuantity" name="perfumes">
-                                    <option value="50 ML">50ML</option>
-                                    <option value="100 ML">100ML</option>
-                                    <option value="150 ML">150ML</option>
-                                    Add more options as needed -->
-                                <!-- </select>
-                            </div>
-                        </div> --> 
-
-
-
                         <div class="border p-3 mb-3">
                             <h2>Stock</h2>
                             
@@ -182,42 +159,6 @@
                             </div>
                         </div>
                 </div>
-
-                <!-- <div class="col-md-4 my-5">
-                    <div class="bg-white p-3">
-                        <div class="form-group">
-                            <label for="category">Category:</label>
-                            <select class="form-select bg-light" id="category" name="Category" required>
-                                <% category.forEach(function(category) { %>
-                                <option value="<%=category.name%>"><%=product.category === "category.name" ? 'selected' : '' %>><%=category.name%> </option>
-                                <% }); %>
-                            </select>
-                        </div><br>
-                        <div class="form-group">
-                            <br>
-                            <label for="brandName">Brand Name:</label>
-                            <select name="BrandName" class="form-select bg-light" id="brand" required>
-                                <% brands.forEach(function(brand) { %>
-                                    <option value="<%=brand.name%>"><%=product.BrandName === "brand.name" ? 'selected' : ''%><%=brand.name%></option>
-                                    <% }); %>
-                            </select>
-                            
-                        </div><br>
-                        <div class="form-group">
-                            <label for="tags">Tags:</label>
-                            <input
-                                type="text"
-                                value="<%=product.tags%>"
-                                class="form-control bg-light"
-                                name="tags"
-                                id="tags"
-                                placeholder="Enter tags"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary ms-3">Edit Product</button>
-                </div> -->
 
 
                 <div class="col-md-4 my-5">
@@ -295,5 +236,59 @@
     updatePreviewImage('image1', 'uploadedImage1');
     updatePreviewImage('image2', 'uploadedImage2');
     updatePreviewImage('image3', 'uploadedImage3');
+
+  
+
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('form');
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      if (validateForm()) {
+        form.submit();
+      }
+    });
+
+    function validateForm() {
+      var productName = document.getElementById('productName').value.trim();
+      var productDescription = document.getElementById('productDescription').value.trim();
+      var specification1 = document.getElementById('productSpecification1').value.trim();
+      var specification2 = document.getElementById('productSpecification2').value.trim();
+      var specification3 = document.getElementById('productSpecification3').value.trim();
+      var tags = document.getElementById('tags').value.trim();
+      var basePrice = parseFloat(document.getElementById('basePrice').value);
+      var discountAmount = parseFloat(document.getElementById('discountAmount').value);
+      var quantity = parseInt(document.getElementById('quantity').value);
+
+      if (!productName || !productDescription || !specification1 || !specification2 || !specification3 || !tags) {
+        alert('Product name, description, specifications, and tags are required.');
+        return false;
+      }
+
+      if (!productName.replace(/\s/g, '').length || !productDescription.replace(/\s/g, '').length || !specification1.replace(/\s/g, '').length || !specification2.replace(/\s/g, '').length || !specification3.replace(/\s/g, '').length || !tags.replace(/\s/g, '').length) {
+        alert('Product name, description, specifications, and tags cannot contain only white spaces.');
+        return false;
+      }
+
+      if (isNaN(basePrice) || basePrice <= 0) {
+        alert('Base price must be a positive number.');
+        return false;
+      }
+
+      if (isNaN(discountAmount) || discountAmount < 0 || discountAmount >= basePrice * 0.1) {
+        alert('Discount amount must be a non-negative value and less than 10% of the base price.');
+        return false;
+      }
+
+      if (isNaN(quantity) || quantity < 0) {
+        alert('Quantity must be a non-negative integer.');
+        return false;
+      }
+
+      return true;
+    }
+  });
+
 </script>
 </html>

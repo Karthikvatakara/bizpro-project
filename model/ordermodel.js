@@ -42,6 +42,12 @@ const orderSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: "Product"
         },
+        name:{
+            type:String
+        },
+        price:{
+            type:Number
+        },
         Quantity: {
             type: Number
         }
@@ -72,6 +78,20 @@ const orderSchema = new Schema({
     },
     returnReason:{
         type: String
+    },
+    coupon:{
+        couponname:{
+            type:String
+        },
+        couponcode:{
+            type:String
+        },
+        discountAmount:{
+            type:Number
+        }
+    },
+    orderUuid:{
+        type:String
     }
 });
 

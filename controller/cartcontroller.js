@@ -11,7 +11,8 @@ const razorpay = require('razorpay')
 const crypto = require('crypto')
 const mongoose = require("mongoose");
 const { findOne } = require('../model/couponmodel')
-
+const couponmodel = require('../model/couponmodel')
+const { v4:uuidv4} = require('uuid'); 
 
 const getusercart = async(req,res)=> {
     try{
@@ -213,9 +214,14 @@ const updatingquantity = async (req, res) => {
 
   const postcheckout = async(req,res) =>{
     try{
+
       let redirected = false;
       console.log(req.body);
       const { AddressId,paymentMethod} = req.body
+      if(!AddressId){
+        console.log("noaddress");
+        return res.json({address:true,status:true})
+      }
       
       const cart = await cartModel.findOne({userId:req.session.user._id})
       console.log(cart,"gorhoihoihoihyh");
@@ -243,8 +249,8 @@ const updatingquantity = async (req, res) => {
       // console.log(cart);
       if (redirected === false ) {
   
-      const userId = req.session.user._id
-      const products = cart.products
+      // const userId = req.session.user._id
+      // const products = cart.products
       
       const TotalPrice = req.session.totalPrice
       const address = await usermodel.findOne({_id:req.session.user._id, 'Address._id':AddressId},{'Address.$':1})
@@ -260,37 +266,93 @@ const updatingquantity = async (req, res) => {
       const currentDate = new Date();
       const expectedDeliveryDate = new Date(currentDate);
       expectedDeliveryDate.setDate(currentDate.getDate() + 4);
+      const uniqueOrderId = uuidv4()
+      console.log(uniqueOrderId,"uniqueOrderId of order")
+
+      const couponCart = await cartModel.findOne({ userId: req.session.user._id });
+      let couponDetials
+      console.log(couponCart,"jabir ");
+      if(couponCart?.coupon){
+        couponDetials = await couponmodel.findOne({_id:couponCart.coupon})
+        console.log(couponDetials);
+      }
       
+      const couponObj = {
+        couponname:couponDetials?.couponName,
+        couponcode:couponDetials?.couponcode,
+        discountAmount:couponDetials?.discountAmount
+      }
+        let neworders;
+      if(couponCart.coupon){
+         neworders = new ordermodel({
+          userId: req.session.user._id,
+          products: [],
+          PaymentMethod: paymentMethod,
+          TotalPrice: req.session.totalPrice,
+          Address: Address,
+          OrderDate: currentDate,
+          ExpectedDeliveryDate: expectedDeliveryDate,
+          coupon: couponObj,
+          orderUuid:uniqueOrderId
+        });
+      }else{
+         neworders = new ordermodel({
+          userId: req.session.user._id,
+          products: [],
+          PaymentMethod: paymentMethod,
+          TotalPrice: req.session.totalPrice,
+          Address: Address,
+          OrderDate: currentDate,
+          ExpectedDeliveryDate: expectedDeliveryDate,
+          orderUuid:uniqueOrderId
+          
+        });
+      }
+      
+      
+      for (const product of cart.products) {
+        const Product = await productModel.findOne({ _id: product.productId });
+        neworders.products.push({
+          productId: Product._id,
+          name: Product.ProductName,
+          price: Product.Price,
+          Quantity: product.Quantity,
+        });
+      }
 
-      const neworders = new ordermodel({
-        userId:req.session.user._id,
-        products:cart.products,
-        PaymentMethod:paymentMethod,
-        TotalPrice:req.session.totalPrice,
-        Address:Address,
-        OrderDate: currentDate,
-        ExpectedDeliveryDate: expectedDeliveryDate
-        
-      })
 
-    
-      // console.log(neworders);
+      
+      console.log(neworders);
       console.log("ivide ethi karthik");
+      
 
       async function userCouponInsert(){
         const cart = await cartModel.findOne({ userId:req.session.user._id }).populate('coupon');
         if(cart.coupon){
+        
           const user = await usermodel.findOne({_id:req.session.user._id,'usedCoupons.couponId':cart.coupon._id})
           if(user){
           const user = await usermodel.findOneAndUpdate({_id:req.session.user._id,'usedCoupons.couponId':cart.coupon._id},{$inc:{'usedCoupons.$.count':1}},{new:true})
+          // const coupon = {
+          //   couponname:cart.coupon.couponName,
+          //   couponcode:cart.coupon.couponcode,
+          //   discountAmount:cart.coupon.discountAmount
+          // }
+          // console.log(coupon,"coupn inserted in the order");
+          // neworders.coupon.push(coupon)
+
           }else{
-        const coupon = {
-          couponId:cart.coupon._id,
-          couponName:cart.coupon.couponName,
-          couponcode:cart.coupon.couponcode,
-        }
+            const coupon = {
+              couponId:cart.coupon._id,
+              couponName:cart.coupon.couponName,
+              couponcode:cart.coupon.couponcode,
+            }
+        // console.log(coupon,"coupon inserted first");
+        // neworders.coupon.push(coupon)
         console.log(cart.coupon._id);
+
         const updateUser = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$push:{usedCoupons:coupon}})
+        
         const UpdateUser = await usermodel.findOneAndUpdate(
           {_id:req.session.user._id, 'usedCoupons.couponId': cart.coupon._id},
           {$inc: {'usedCoupons.$.count': 1}},
@@ -302,9 +364,11 @@ const updatingquantity = async (req, res) => {
 
     if(paymentMethod === 'cod'){
       // console.log("safeer");
+      
       const orders = await neworders.save()
-     
       userCouponInsert();
+      
+      
       const deletedcart = await cartModel.findByIdAndDelete(cart._id)   
     // console.log(orders);
 
@@ -454,7 +518,8 @@ const updatingquantity = async (req, res) => {
           req.flash("error",`the wallet contains only ${WalletAmount} rupees`)
           res.json({status:false,url:'/cart'})
         }
-      }}
+      }
+    }
 
     }catch(error){
       console.log(error);

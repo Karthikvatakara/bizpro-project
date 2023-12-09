@@ -16,21 +16,34 @@
                 <th>Start Date</th>
                 <th>Expiry Date</th>
                 <th>DiscountAmount</th>
+                <th>usageLimit</th>
                 <th>Minumum Purchase Amount</th>
+                <th>Action</th>
             </tr>
         </thead>
-        <% coupons.forEach((coupon) =>{ %> 
+        <% coupons.forEach((coupon,index) =>{ %> 
         <tbody>
+            
             <tr>
-                <td>1</td>
-                <td><%= coupon.couponName %></td>
+                <td><%= index+1 %></td>
+                <td><%= coupon.couponName %></td> 
                 <td><%= coupon.couponcode %></td>
 
-                <td><%= moment(coupon.startDate).format('ll') %> <%= moment().format('LT') %></td>
-                <td><%= moment(coupon.expiryDate).format('lll') %></td>
+                <td><%= moment(coupon.startDate).format('YYYY-MM-DD') %></td>
+                <td><%= moment(coupon.expiryDate).format('YYYY-MM-DD') %></td>
+
                 <td><%= coupon.discountAmount %></td>
+                <td><%= coupon.usageLimit %></td>
                 <td><%= coupon.minimumPurchaseAmount %></td>
+                <td>
+                <% if (coupon.Status === 'Active') { %>
+                    <a href="/admin/coupon/<%=coupon._id%>"><button onclick="return confirm('Are you sure you want to  block the coupon')" class="btn btn-success " >Block</button></a>
+                <% } else if (coupon.Status === 'Blocked') { %>
+                    <a href="/admin/coupon/<%=coupon._id%>"><button onclick="return confirm('Are you sure you want to  unblock the coupon')" class="btn btn-danger">Unblock</button></a>
+                <% } %>
+            </td>
             </tr>
+        
         </tbody>
         <% }) %>
     </table>
@@ -48,14 +61,14 @@
             </div>
             <div class="modal-body">
                 <!-- Add form elements for adding a coupon -->
-                <form action="/admin/addCoupon" method="post">
+                <form action="/admin/addCoupon" method="post" id="addCouponForm">
                     <div class="form-group">
                         <label for="couponName">Coupon Name</label>
                         <input type="text" class="form-control" id="couponName" name="couponName" placeholder="Enter coupon name" required>
                     </div>
                     <div class="form-group">
                         <label for="couponCode">Coupon Code</label>
-                        <input type="text" class="form-control" id="couponcode" name="couponcode" placeholder="Enter coupon code" required>
+                        <input type="text" class="form-control" id="couponCode" name="couponcode" placeholder="Enter coupon code" required>
                     </div>
                     <div class="form-group">
                         <label for="startDate">Start Date</label>
@@ -67,7 +80,7 @@
                     </div>
                     <div class="form-group">
                         <label for="discountAmount">Discount Amount</label>
-                        <input type="number" class="form-control" id="discountAmount" name="discountAmount" placeholder="Enter discount amount" required min="0">
+                        <input type="number" class="form-control" id="discountAmount" name="discountAmount" placeholder="Enter discount amount" required min="1">
                     </div>
                     <div class="form-group">
                         <label for="usageLimit">Usage Limit</label>
@@ -90,19 +103,55 @@
 
 
 <script>
-    // Get today's date
-    const today = new Date();
-    const tomorrow = today
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get today's date
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
 
-    // Set the minimum value for the Start Date input to today
-    document.getElementById('startDate').min = formatDate(today);
-    document.getElementById('expiryDate').min = formatDate(today);
-    // Function to format the date as 'YYYY-MM-DD' (required format for input type="date")
-    function formatDate(date) {
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-based
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+        // Set the minimum value for the Start Date input to today
+        document.getElementById('startDate').min = formatDate(today);
+        document.getElementById('expiryDate').min = formatDate(tomorrow);
+
+        // Add event listener to the Start Date input
+        document.getElementById('startDate').addEventListener('input', function () {
+            // Update the minimum value for the Expiry Date input based on the selected start date
+            const selectedStartDate = new Date(this.value);
+            const minExpiryDate = new Date(selectedStartDate);
+            minExpiryDate.setDate(selectedStartDate.getDate() + 1);
+
+            document.getElementById('expiryDate').min = formatDate(minExpiryDate);
+        });
+
+        // Add event listener to the form submit event
+        document.getElementById('addCouponForm').addEventListener('submit', function (event) {
+            // Perform discount amount validation
+            const discountAmountInput = document.getElementById('discountAmount');
+            const discountAmount = parseFloat(discountAmountInput.value);
+            const minimumPurchaseAmountInput = document.getElementById('minimumPurchaseAmount');
+            const minimumPurchaseAmount = parseFloat(minimumPurchaseAmountInput.value);
+            
+            // Check if discount amount is less than 1 rupee
+            if (discountAmount < 1) {
+                alert('Minimum discount amount is 1 rupee.');
+                event.preventDefault();
+                return;
+            }
+
+            // Check if discount amount is greater than or equal to 10% of the minimum purchase amount
+            if (discountAmount >= 0.1 * minimumPurchaseAmount) {
+                alert('Maximum discount amount should be less than 10% of the minimum purchase amount.');
+                event.preventDefault();
+            }
+        });
+        this.reset()
+        // Function to format the date as 'YYYY-MM-DD' (required format for input type="date")
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-based
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    });
 </script>
 <%- include('../admin/layouts/footer') %>

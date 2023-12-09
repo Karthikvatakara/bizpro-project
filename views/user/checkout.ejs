@@ -11,7 +11,7 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <form action="/addaddress-checkout" method="post">
+              <form action="/addaddress-checkout" method="post" onsubmit="return validateForm()">
                 <div class="mb-3">
                   <label for="fullName" class="form-label">Full Name</label>
                   <input type="text" class="form-control" name="Name" id="fullName" placeholder="Enter your full name"
@@ -292,8 +292,24 @@
               if (!response.status) {
                 console.log("nullll");
                 window.location.href = response.url
-              } else {
+              } else if(response.address && response.status){
+                console.log('inside swallll');
+                Swal.fire({
+                title: 'Add Address',
+                text: 'Please add your address.',
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonText: 'OK'
+                  }).then((result) => {
+     
+                if (result.isConfirmed) {
+            // Additional logic if needed, but no page redirection
+                console.log('User clicked OK. No page redirection.');
+                 }
+                });
+
                 console.log(response);
+              }else{
                 if (response.codsuccess) {
                   console.log("reached");
                   window.location.href = response.url
@@ -360,6 +376,47 @@
             }
           })
         })
-      </script>
 
-      <%- include('../user/layouts/footer') %>
+        function validateForm() {
+    // Get form inputs
+    var fullName = document.getElementById('fullName').value;
+    var address = document.getElementById('address').value;
+    var city = document.getElementById('city').value;
+    var pincode = document.getElementById('pincode').value;
+    var state = document.getElementById('state').value;
+    var mobileNumber = document.getElementById('mobileNumber').value;
+
+    // Validate each field
+    if (fullName === '' || address === '' || city === '' || pincode === '' || state === '' || mobileNumber === '') {
+        alert('Please fill in all fields.');
+        return false;
+    }
+
+    // Additional validation for fullName, address, city, and state
+    var nameRegex = /^[a-zA-Z]+$/;
+    if (!fullName.match(nameRegex) || !address.match(nameRegex) || !city.match(nameRegex) || !state.match(nameRegex)) {
+        alert('Invalid characters in name, address, city, or state fields.');
+        return false;
+    }
+
+    // Validate pincode
+    var pincodeRegex = /^[1-9]\d{5}$/;
+    if (!pincode.match(pincodeRegex)) {
+        alert('Pincode must be a 6-digit number starting with a digit other than 0.');
+        return false;
+    }
+
+    // Validate mobile number
+    var mobileRegex = /^[1-9]\d{9}$/;
+    if (!mobileNumber.match(mobileRegex)) {
+        alert('Mobile number must be a 10-digit number starting with a digit other than 0.');
+        return false;
+    }
+
+    // If all validations pass, allow the form to be submitted
+    return true;
+}
+
+</script>
+
+<%- include('../user/layouts/footer') %>

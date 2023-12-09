@@ -46,7 +46,7 @@
                             <textarea
                                 class="form-control bg-light"
                                 name="specification2"
-                                id="productSpecification"
+                                id="productSpecification2"
                                 placeholder="Enter product Specification"
                                 required
                             ></textarea>
@@ -54,7 +54,7 @@
                             <textarea
                                 class="form-control bg-light"
                                 name="specification3"
-                                id="productSpecification"
+                                id="productSpecification3"
                                 placeholder="Enter product Specification"
                                 required
                             ></textarea>
@@ -256,5 +256,70 @@
     updatePreviewImage('image1', 'uploadedImage1');
     updatePreviewImage('image2', 'uploadedImage2');
     updatePreviewImage('image3', 'uploadedImage3');
+
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('form');
+
+    form.addEventListener('submit', function (event) {
+        console.log("hai")
+      event.preventDefault();
+      if (validateForm()) {
+        console.log("reached");
+        form.submit();
+      }
+    });
+
+    function validateForm() {
+      var productName = document.getElementById('productName').value.trim();
+      var productDescription = document.getElementById('productDescription').value.trim();
+      var specification1 = document.getElementById('productSpecification1').value.trim();
+      var specification2 = document.getElementById('productSpecification2').value.trim();
+      var specification3 = document.getElementById('productSpecification3').value.trim();
+      var tags = document.getElementById('tags').value.trim();
+      var basePrice = parseFloat(document.getElementById('basePrice').value);
+      var discountAmount = parseFloat(document.getElementById('discountAmount').value);
+      var quantity = parseInt(document.getElementById('quantity').value);
+      var image1 = document.getElementById('image1').value;
+      var image2 = document.getElementById('image2').value;
+      var image3 = document.getElementById('image3').value;
+
+      if (!productName || !productDescription || !specification1 || !specification2 || !specification3 || !tags) {
+        alert('Product name, description, specifications, and tags are required.');
+        return false;
+      }
+
+      if (!productName.replace(/\s/g, '').length || !productDescription.replace(/\s/g, '').length || !specification1.replace(/\s/g, '').length || !specification2.replace(/\s/g, '').length || !specification3.replace(/\s/g, '').length || !tags.replace(/\s/g, '').length) {
+        alert('Product name, description, specifications, and tags cannot contain only white spaces.');
+        return false;
+      }
+
+      if (isNaN(basePrice) || basePrice <= 0) {
+        alert('Base price must be a positive number.');
+        return false;
+      }
+
+      if (isNaN(discountAmount) || discountAmount < 0 || discountAmount >= basePrice * 0.1) {
+        alert('Discount amount must be a non-negative value and less than 10% of the base price.');
+        return false;
+      }
+
+      if (isNaN(quantity) || quantity <= 0) {
+        alert('Quantity must be a positive integer.');
+        return false;
+      }
+
+      if (!image1 || !image2 || !image3) {
+        alert('All images are required.');
+        return false;
+      }
+
+      return true;
+    }
+  });
 </script>
+
+    
+
+
 </html>

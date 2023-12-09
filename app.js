@@ -35,6 +35,13 @@ app.use(flash())
 app.use("/",userrouter)
 app.use("/admin",adminrouter)
 
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).render('404')
+});
+
+
 app.use("*", (req,res) => {
     res.render('404')
   })

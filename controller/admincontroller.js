@@ -84,7 +84,7 @@ const postadmincheck = async(req,res) => {
 
             if(passwordmatch) {
                 req.session.adminAuth = true
-                res.redirect('/admin/adminshowproduct')
+                res.redirect('/admin/dashboard')
             } else{
                 res.redirect('/admin/adminlogin')
             }

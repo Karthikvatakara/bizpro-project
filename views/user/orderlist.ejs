@@ -35,7 +35,7 @@
           <% order.forEach(function (order) { %>
             <div class="card order-card">
               <div class="card-body">
-                <h5 class="card-title">Order ID: #ORD<%= order._id %></h5>
+                <h5 class="card-title">Order ID: #ORD<%= order.orderUuid %></h5>
                 <p class="card-text">Payment Method: <%= order.PaymentMethod %></p>
                 <p class="card-text">Order Status: <%= order.Status %></p>
                 <p class="card-text">Payment Status: <%= order.PaymentStatus %></p>

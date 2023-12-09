@@ -67,5 +67,6 @@ router.get('/latestOrders',adminAuth.authmiddleware,admincontroller.getOrdersAnd
 router.post('/download-sales-report',adminAuth.authmiddleware,ordercontroller.getDownloadSalesReport)
 
 router.get('/adminlogout',adminAuth.authmiddleware,admincontroller.adminlogout)
+router.get('/coupon/:id',adminAuth.authmiddleware,couponcontroller.changeCouponStatus)
 
 module.exports = router 

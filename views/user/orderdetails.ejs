@@ -81,7 +81,7 @@
                       </div>
                     </td>
                     <td class="text-end"><b>Qty:<%= product.Quantity %></b></td>
-                    <td class="text-end"><b>Rs.<%= product.productId.Price %></b></td>
+                    <td class="text-end"><b>Rs.<%= product.price %></b></td>
                     <!-- Include condition for reviewOption if needed -->
                   </tr>
                 <% }) %>
@@ -97,9 +97,9 @@
                   <td class="text-end"><b>Rs.<%= order.TotalPrice %></b></td>
                 </tr>
                 <tr>
-                    <% if (order.Discount) { %>
-                      <td colspan="2"><b>Discount </b></td>
-                      <td class="text-success text-end"><b>-Rs.<%= order.Discount %></b></td>
+                    <% if (order.coupon?.discountAmount) { %>
+                      <td colspan="2"><b>Saved By Coupon </b></td>
+                      <td class="text-success text-end"><b>Rs.<%= order.coupon.discountAmount %></b></td>
                     <% } %>
                   </tr>
                   <tr class="fw-bold">

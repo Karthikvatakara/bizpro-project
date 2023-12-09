@@ -16,6 +16,7 @@ const { default: mongoose } = require("mongoose");
 const bannermodel = require('../model/bannermodel')
 const moment = require('moment')
 const couponmodel = require('../model/couponmodel')
+const {v4:uuidv4} = require('uuid')
 
 //for displaying userhome
 const viewproduct = async (req, res) => {
@@ -252,7 +253,10 @@ const postemailverification = async (req, res) => {
   try {
     console.log("reached postemail");
     const user = await usermodel.create(req.session.user);
-    console.log(user);
+    const userUuid = uuidv4();
+    const uuid = await usermodel.findOneAndUpdate({_id:user._id},{$set:{userUuid:userUuid}},{new:true})
+    console.log(uuid,"uuid of the user");
+    // console.log(user);
     req.session.user = user;
     req.session.userAuth = true;
     
@@ -737,12 +741,32 @@ const postEditProfile = async(req,res) =>{
 const getuserCoupons = async(req,res) =>{
   try{
     const user = await usermodel.findOne({_id:req.session.user._id})
-    const offers = await couponmodel.find({})
+    const offers = await couponmodel.find({Status:'Active'})
     res.render('user/usercoupons',{user,offers,moment})
   }catch(error){
     console.log(error);
   }
 }
+
+
+const navbarsearch = async (req, res) => {
+  try {
+    const { search } = req.body;
+    const regex = new RegExp(search, 'i');
+    const productDetails = await productModel.find({ tags: regex, Display: 'Active' });
+
+    if (productDetails.length === 0) {
+      res.render('user/noresults'); // Create a 'noresults' view for indicating no search results
+      return;
+    }
+
+    res.render('user/usershop', { productDetails });
+  } catch (error) {
+    console.log(error);
+    res.render('error', { error });
+  }
+};
+
 
 module.exports = {
   viewproduct,
@@ -772,5 +796,6 @@ module.exports = {
   getaddress,
   postEditProfile,
   getuserCoupons,
-  getreferelsignup
+  getreferelsignup,
+  navbarsearch
 };
