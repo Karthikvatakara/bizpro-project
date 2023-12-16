@@ -46,7 +46,10 @@ const Userschema = mongoose.Schema( {
      }],
      userUuid:{
         type:String
-     }
+     },
+     wishlist:[{
+        ProductId:{type:mongoose.Types.ObjectId,ref:"Product"}
+     }]
 })
 
 module.exports = mongoose.model("user" , Userschema)

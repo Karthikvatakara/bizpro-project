@@ -1,5 +1,5 @@
 <%- include('../user/layouts/header')%>    
- <%- include('../user/partials/userheader')%>
+<%- include('../user/partials/userheader')%>
 
     <style>
         /* Style for the table rows */
@@ -40,7 +40,7 @@
                 <p class="card-text">Order Status: <%= order.Status %></p>
                 <p class="card-text">Payment Status: <%= order.PaymentStatus %></p>
                 <p class="card-text">Date:<%=  moment(order.OrderDate).format('lll') %></p>
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-end">a
                   <% if (order.Status === 'Delivered') { %>
                     <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary me-2">View Details</a>
                     <button class="btn btn-danger me-2"  onclick="confirmReturn('<%= order._id %>')">Return</button>
@@ -69,9 +69,9 @@
                       </div>
                     </div>
 
-                  <% } else if (order.Status === 'Order Placed' || order.Status === 'Shipped') { %>
+                  <% } else if (order.Status === "Order Placed" || order.Status === "Shipped") { %>
                     <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary me-2">View Details</a>
-                    <button class="btn btn-warning me-2" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
+                    <button class="btn btn-warning me-2" id="downloadButton" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
                     <% if (order.Status !== 'Cancelled') { %>
                       <button class="btn btn-warning me-2" onclick="confirmCancellation('<%= order._id %>')">Cancel Order</button>
       
@@ -114,7 +114,9 @@
         <% } %>
       </div>
       
+      </body>
       <script>
+        // document.addEventListener('DOMContentLoaded', function () {
         function confirmCancellation(orderId) {
           Swal.fire({
             title:'Are you sure',
@@ -127,7 +129,6 @@
           }).then((result) =>{
 
             if (result.isConfirmed) {
-            // window.location.href = '/order/cancel/' + orderId;
               $.ajax({
                 url:'/order/cancel/'+orderId,
                 type:'POST',
@@ -149,9 +150,9 @@
           })
          
         }
-        </script>
+      
      
-     <script>
+    
       function confirmReturn(orderId) {
         Swal.fire({
           title: 'Are you sure?',
@@ -191,9 +192,7 @@
           }
         });
       }
-      </script>
-
-      <script>
+      
         function cancelReturnRequest(orderId){
           $.ajax({
             url:`/order/cancelReturnRequest/${orderId}`,
@@ -213,9 +212,8 @@
             }
           })
         }
-      </script>
-    
-    <script>
+     
+      
       function downloadInvoice(orderId){
         document.getElementById('downloadButton').style.display ='none';
         document.getElementById('loading-spinner').style.display = 'block';
@@ -226,6 +224,7 @@
             orderId:orderId
           },
           success:(response)=>{
+            console.log("hai iam karthik");
           document.getElementById('downloadButton').style.display = 'block';
           document.getElementById('loading-spinner').style.display = 'none';
           window.location.href = `/download/invoice/${orderId}`
@@ -237,7 +236,16 @@
           }
         })
       }
+    // })
        </script>
      
 
-    <%-include('../user/layouts/footer') %>
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+     <!-- <script src="/assets/js/user/home/jquery-1.11.0.min.js"></script> -->
+     <script type="text/javascript" src="/assets/js/user/home/bootstrap.bundle.min.js"></script>
+     <script type="text/javascript" src="/assets/js/user/home/plugins.js"></script>
+     <script type="text/javascript" src="/assets/js/user/home/script.js"></script>
+     
+     </html>

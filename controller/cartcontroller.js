@@ -232,13 +232,13 @@ const updatingquantity = async (req, res) => {
         const Product = await productModel.findOne({_id:product.productId})
         if(!Product) {
           console.log('there is no product');
-          req.flash('err','product is not available')
+          req.flash("error",'product is not available')
           redirected = true
           res.json({status: false, url: '/cart', err: true, messages:'product is not available'});   
         }
         else if(cartQuantity > Product.AvailableQuantity || Product.AvailableQuantity == 0) {
           console.log('in else');
-          req.flash('err',`only ${Product.AvailableQuantity} is in stock`)
+          req.flash("error",`only ${Product.AvailableQuantity} is in stock`)
           console.log(req.flash());
 
           redirected = true
@@ -328,7 +328,7 @@ const updatingquantity = async (req, res) => {
 
       async function userCouponInsert(){
         const cart = await cartModel.findOne({ userId:req.session.user._id }).populate('coupon');
-        if(cart.coupon){
+        if(cart?.coupon){
         
           const user = await usermodel.findOne({_id:req.session.user._id,'usedCoupons.couponId':cart.coupon._id})
           if(user){
@@ -388,7 +388,7 @@ const updatingquantity = async (req, res) => {
           await Product.save();
         }
       }else{
-        req.flash("err","product is not found")
+        req.flash("error","product is not found")
         res.json({status:false,url:'/cart'})
       }
     }
@@ -488,7 +488,7 @@ const updatingquantity = async (req, res) => {
                 await Product.save();
               }
             }else{
-              req.flash("err","product is not found")
+              req.flash("error","product is not found")
               res.json({status:false,url:'/cart'})
             }
           }
@@ -514,9 +514,16 @@ const updatingquantity = async (req, res) => {
           console.log(user);
           console.log(order);
         }else{
+          if( WalletAmount == 0){
+            console.log("wallet is 0");
+            res.json({status:true,emptyWallet:true})
+          }else{
           console.log("jjjjjj");
-          req.flash("error",`the wallet contains only ${WalletAmount} rupees`)
-          res.json({status:false,url:'/cart'})
+          // req.flash("error",`the wallet contains only ${WalletAmount} rupees`)
+          // res.json({status:false,url:'/cart'})
+          res.json({status:true,wallet:true,WalletAmount,totalPrice,Address,neworders,cart})
+        
+          }
         }
       }
     }
@@ -530,7 +537,7 @@ const updatingquantity = async (req, res) => {
   const getordersuccess = async(req,res) => {
     try{
       const user = await usermodel.findOne({_id:req.session.user._id})
-      res.render('user/ordersuccess',{user})
+      res.render('user/orderSuccess',{user})
     }catch(error){
       console.log(error);
     } 
@@ -563,7 +570,7 @@ const updatingquantity = async (req, res) => {
       // console.log(req.body.payment.razorpay_signature);
       if(generatedSignature === req.body.payment.razorpay_signature){
         const orderId = new mongoose.Types.ObjectId( req.body.order.receipt);
-        const updatedorder = await ordermodel.findByIdAndUpdate(orderId,{PaymentMethod:"online",PaymentStatus:"paid",Status:"Order Placed"})
+        const updatedorder = await ordermodel.findByIdAndUpdate(orderId,{PaymentStatus:"paid",Status:"Order Placed"})
         console.log(updatedorder);
         const deletedcart = await cartModel.findOneAndDelete({userId:req.session.user._id})
         console.log(updatedorder);
@@ -573,6 +580,163 @@ const updatingquantity = async (req, res) => {
       }
     }catch(error){
       console.log(error);  
+    }
+  }
+
+  const postWalletCheckout = async(req,res) =>{
+    try{
+      const {selectedPaymentMethod, WalletAmount,totalPrice,OrderDetails,cart}  =req.body
+
+      async function userCouponInsert(){
+        const cart = await cartModel.findOne({ userId:req.session.user._id }).populate('coupon');
+        if(cart.coupon){
+        
+          const user = await usermodel.findOne({_id:req.session.user._id,'usedCoupons.couponId':cart.coupon._id})
+          if(user){
+          const user = await usermodel.findOneAndUpdate({_id:req.session.user._id,'usedCoupons.couponId':cart.coupon._id},{$inc:{'usedCoupons.$.count':1}},{new:true})
+
+          }else{
+            const coupon = {
+              couponId:cart.coupon._id,
+              couponName:cart.coupon.couponName,
+              couponcode:cart.coupon.couponcode,
+            }
+        console.log(cart.coupon._id);
+
+        const updateUser = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$push:{usedCoupons:coupon}})
+        
+        const UpdateUser = await usermodel.findOneAndUpdate(
+          {_id:req.session.user._id, 'usedCoupons.couponId': cart.coupon._id},
+          {$inc: {'usedCoupons.$.count': 1}},
+          {new: true}
+        );
+        const Cart = await cartModel.findOneAndUpdate({userId:req.session.user._id},{$unset:{coupon:1}})
+        }
+        }}
+
+      if(selectedPaymentMethod == 'cod')   {
+        const newOrders = new ordermodel(OrderDetails)
+        const orders = await newOrders.save() 
+        userCouponInsert();
+        const deletedcart = await cartModel.findByIdAndDelete(cart._id)  
+
+        const multiplePayment = await ordermodel.findOneAndUpdate(
+          { _id: orders._id },
+          {
+            $set: { 'isMultiplePayment.isMultiple': true },
+            $inc: { 'isMultiplePayment.Amount': WalletAmount }
+          }
+        );
+        console.log(multiplePayment,"multiplepayment");
+        const wallet = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$inc:{WalletAmount:-WalletAmount}})
+        const WalletTransaction = {
+          orderId  : orders._id,
+          Status: 'Debited',
+          Date:new Date(),
+          Amount: WalletAmount,
+          OrderDetails:'Order Placed',
+          paymentMethod: "wallet+cod",
+          products:orders.products
+      }
+
+        const User = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$push:{walletTransactions:WalletTransaction}})
+         const Orders = await ordermodel.findOneAndUpdate({_id:orders._id},{PaymentMethod:"wallet+cod"})
+        console.log("again reached here?");
+
+        for(const product of orders.products){
+          console.log(product._id,"PRODUCT ID");
+          console.log(product.Quantity,"PRODUCT QUANTITY");
+          const Product = await productModel.findById(product.productId)
+          if(Product){
+            const newQuantity = Product.AvailableQuantity - product.Quantity
+            // console.log(newQuantity);
+            if(newQuantity <= 0) {
+              Product.AvailableQuantity = 0;
+              Product.Status = "OUT OF STOCK"
+              await Product.save();
+            }else{
+              Product.AvailableQuantity =Product.AvailableQuantity - product.Quantity
+              await Product.save();
+            }
+          }else{
+            req.flash("error","product is not found")
+            res.json({status:false,url:'/cart'})
+          }
+        }
+        console.log("lllll");
+        res.json({status:false,codsuccess:true,url:'/ordersuccess'})
+
+
+      }else if(selectedPaymentMethod == 'online'){
+
+        const newOrders = new ordermodel(OrderDetails)
+        const orders = await newOrders.save() 
+        userCouponInsert();
+
+        const orderdetails =  {
+          amount:orders.TotalPrice-WalletAmount,
+          receipt:orders._id,
+        }
+        const user = await usermodel.findOne({_id:req.session.user._id})
+        const order = await Razorpay.createRazorpayOrder(orderdetails)
+        console.log(order,"hiiiiii");
+        
+
+        const deletedcart = await cartModel.findByIdAndDelete(cart._id)  
+
+        const multiplePayment = await ordermodel.findOneAndUpdate(
+          { _id: orders._id },
+          {
+            $set: { 'isMultiplePayment.isMultiple': true },
+            $inc: { 'isMultiplePayment.Amount': WalletAmount }
+          }
+        );
+        console.log(multiplePayment,"multiplepayment");
+        const wallet = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$inc:{WalletAmount:-WalletAmount}})
+        const WalletTransaction = {
+          orderId  : orders._id,
+          Status: 'Debited',
+          Date:new Date(),
+          Amount: WalletAmount,
+          OrderDetails:'Order Placed',
+          paymentMethod: "wallet+online",
+          products:orders.products
+      }
+
+        const cuurentUser = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$push:{walletTransactions:WalletTransaction}})
+        console.log("hi iam karthik");
+         const Orders = await ordermodel.findOneAndUpdate({_id:orders._id},{PaymentMethod:"wallet+online"},{new: true})
+         console.log(orders._id,'hhh');
+         console.log(Orders.PaymentMethod,"jjjjjjjjj");
+        // console.log(Orders.PaymentMethod,"again reached here?");
+
+        for(const product of orders.products){
+          console.log(product._id,"PRODUCT ID");
+          console.log(product.Quantity,"PRODUCT QUANTITY");
+          const Product = await productModel.findById(product.productId)
+          if(Product){
+            const newQuantity = Product.AvailableQuantity - product.Quantity
+            // console.log(newQuantity);
+            if(newQuantity <= 0) {
+              Product.AvailableQuantity = 0;
+              Product.Status = "OUT OF STOCK"
+              await Product.save();
+            }else{
+              Product.AvailableQuantity =Product.AvailableQuantity - product.Quantity
+              await Product.save();
+              const deletedcart = await cartModel.findByIdAndDelete(cart._id)   //cart deleted//
+            }
+          }else{
+            req.flash("err","product is not found")
+            res.rediret('/cart')
+          }
+          console.log(order,user)
+          res.json({status: true,onlineSuccess:true,order,user})
+        }
+      }
+
+    }catch(error){  
+      console.log(error);
     }
   }
 
@@ -587,5 +751,6 @@ module.exports = {
   getordersuccess, 
   getprofilecart, 
   postverifypayment, 
-  getcartinsideForSafeer
+  getcartinsideForSafeer,
+  postWalletCheckout
 }

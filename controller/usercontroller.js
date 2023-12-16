@@ -767,6 +767,36 @@ const navbarsearch = async (req, res) => {
   }
 };
 
+const getwishlist = async(req,res)=>{
+  try{
+    const userId = req.session.user._id;
+    const date = new Date();
+    const user = await usermodel.findOne({_id:userId}).populate('wishlist.ProductId')
+    res.render('user/wishlist',{user,date})
+  }catch(error){
+    console.log(error);
+  }
+}
+
+// const addToWishlist = async(req,res) =>{
+//   try{
+//     console.log("hai nari anirudh")
+//     const productId = req.params.id;
+//     const userId = req.session.user._id;
+
+//     const wishlistContains = await usermodel.findOne({_id:userId,'wishlist.ProductId':productId});
+    
+//     console.log(wishlistContains);
+//     if(wishlistContains){
+//       res.json({ success: false });
+//     }else{
+//       const wishlist = await usermodel.findOneAndUpdate({_id:userId},{$push:{wishlist:{productId:productId}}});
+//       res.json({ success: true});    
+//     }
+//   }catch(error){
+//     console.log(error);
+//   }
+// }
 
 module.exports = {
   viewproduct,
@@ -797,5 +827,7 @@ module.exports = {
   postEditProfile,
   getuserCoupons,
   getreferelsignup,
-  navbarsearch
+  navbarsearch,
+  getwishlist,
+  // addToWishlist
 };

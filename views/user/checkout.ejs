@@ -309,7 +309,135 @@
                 });
 
                 console.log(response);
-              }else{
+              }else if(response.wallet && response.status){
+                let WalletAmount = response.WalletAmount
+                let totalPrice = response.totalPrice
+                let Address = response.Address
+                let newOrders = response.neworders
+                let cart = response.cart
+                console.log(cart,"cartconsolled");  
+
+                Swal.fire({
+                title: 'Confirmation',
+                text: `The wallet contains only ${WalletAmount} rupees. Are you sure you want to continue?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Continue',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+                }).then((walletResult) => {
+               if (walletResult.isConfirmed) {
+                 // User clicked "Continue" for wallet, show payment method modal
+                Swal.fire({
+                 title: 'Select Payment Method For Remaining!',
+                input: 'radio',
+                inputOptions: {
+                'cod': 'Cash on Delivery',
+                'online': 'Online Delivery',
+                },
+              inputValidator: (value) => {
+               // Check if a payment method is selected
+               if (!value) {
+              return 'Please select a payment method';
+              }
+              },
+              showCancelButton: true,
+              confirmButtonText: 'Proceed',
+              cancelButtonText: 'Cancel',
+              allowOutsideClick: false,
+              }).then((paymentResult) => {
+              if (paymentResult.isConfirmed) {
+        // User selected a payment method, you can handle the logic here
+                const selectedPaymentMethod = paymentResult.value;
+                  console.log(selectedPaymentMethod);
+                  console.log(WalletAmount,"walletamount");
+                console.log(totalPrice,"totalprice")
+                console.log(Address,"ADDRESS OF USER");
+                // Swal.fire('Payment Method Selected!', `You chose ${selectedPaymentMethod}`, 'success');
+                $.ajax({
+                  url:'/walletcheckout',
+                  method:'POST',
+                  data:{
+                    selectedPaymentMethod:selectedPaymentMethod,
+                    WalletAmount:WalletAmount,
+                    totalPrice:totalPrice,
+                    OrderDetails:newOrders,
+                    cart:cart,
+                  },
+                  success:(response)=>{
+                    console.log("success");
+                    if(!response.status && response.codsuccess){
+                      window.location.href = response.url;
+                    }else if(!response.status){
+                      window.location.href = response.url;
+                    }else if(response.status && response.onlineSuccess){
+
+                      console.log("sucessfully reached");
+                      const newResponse = response
+
+                  var options = {
+                    "key": "rzp_test_mzVcxquSaxgXW5", // Enter the Key ID generated from the Dashboard
+                    "amount": response.order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                    "currency": "INR",
+                    "name": "Acme Corp",
+                    "description": "Test Transaction",
+                    "image": "https://example.com/your_logo",
+                    "order_id": response.order.id,
+                    "handler": function (response) {
+                      console.log("hai test");
+                      verifypayment(response, newResponse.order);
+                    },
+                    "prefill": {
+                      "name": "user.name",
+                      "email": "user.email",
+                      "contact": "9000090000"
+                    },
+                    "notes": {
+                      "address": "Razorpay Corporate Office"
+                    },
+                    "theme": {
+                      "color": "#3399cc"
+                    }
+                  };
+                  var rzp1 = new Razorpay(options);
+                  rzp1.open();
+                  e.preventDefault();
+
+
+                    }
+                  },
+                  error:(error)=>{
+                    console.log(error);
+                  }
+                })
+                } else {
+                // User clicked "Cancel" in the payment method modal
+                Swal.fire('Payment Canceled', 'You have canceled the payment method selection.', 'info');
+                 }
+                 });
+                  } else {
+                 // User clicked "Cancel" or closed the wallet confirmation modal
+                  Swal.fire('Action Canceled', 'You have canceled the action.', 'info');
+                  }
+                  });
+
+            }else if(response.status && response.emptyWallet){
+              Swal.fire({
+              title: 'Wallet Balance',
+              text: 'Your wallet balance is 0.',
+               icon: 'warning',
+               confirmButtonText: 'OK',
+              showCancelButton: false,
+              }).then((result) => {
+               if (result.isConfirmed) {
+              // Handle the OK button click if needed
+              console.log('OK button clicked');
+               }
+              });
+
+
+            }
+              else{
                 if (response.codsuccess) {
                   console.log("reached");
                   window.location.href = response.url
@@ -351,6 +479,8 @@
                 e.preventDefault();
 
               }
+
+
               function verifypayment(payment, order) {
                 console.log(payment, "payment is consoled");
                 console.log(order, "order is consoled");
@@ -373,6 +503,8 @@
                   }
                 })
               }
+
+
             }
           })
         })

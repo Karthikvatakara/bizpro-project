@@ -96,8 +96,14 @@ router.get('/download/invoice/:id',userAuth.userToken,ordercontroller.downloadfi
 router.post('/edit-profile', userAuth.userToken,usercontroller.postEditProfile)
 
 router.get('/coupons-and-offers',userAuth.userToken,usercontroller.getuserCoupons)
-router.post('/validateCoupon',couponcontroller.postValidateCoupon)
-router.post('/couponremoval',couponcontroller.postcouponremoval)
+router.post('/validateCoupon',userAuth.userToken,couponcontroller.postValidateCoupon)
+router.post('/couponremoval',userAuth.userToken,couponcontroller.postcouponremoval)
 
 router.post('/home/search',usercontroller.navbarsearch)
+
+router.post('/walletcheckout',userAuth.userToken,cartcontroller.postWalletCheckout)
+
+// router.get('/wishlist',userAuth.userToken,usercontroller.getwishlist)
+// router.get('/addToWishlist/:id',userAuth.userToken,usercontroller.addToWishlist)
+// router.get('/removeFromWishlist/:_id',userAuth.userToken,usercontroller.removeFromWishlist)
 module.exports = router

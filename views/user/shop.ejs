@@ -6,14 +6,13 @@
     
 
     <h1 class="text-center" style="text-shadow: 2px 2px 5px rgb(101, 226, 101); color:rgb(225, 65, 65)">SHOP</h1>
-    <div class="text-end p-4">
-        <button class="btn btn-outline-primary mt-3 " type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop" aria-controls="staticBackdrop">
+    <div class="d-flex justify-content-between px-5 pt-5 pb-2">
+        <button class="btn btn-outline-primary ms-4" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop" aria-controls="staticBackdrop">
             <i class="fa-solid fa-sliders"></i>
             FILTERS
         </button>
-    </div>
 
-    <div class="dropdown custom-dropdown">
+        <div class="dropdown custom-dropdown pe-4">
         <button class="btn btn-primary dropdown-toggle" type="button" id="customDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Sort By
         </button>
@@ -23,7 +22,9 @@
         <a class="dropdown-item" href="/usershop?sort=priceAsc">Price (Low to High)</a>
         <a class="dropdown-item" href="/usershop?sort=priceDesc">Price (High to Low)</a>
         </div>
+        </div>
     </div>
+
 
 <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop" aria-labelledby="staticBackdropLabel">
     <div class="offcanvas-header">

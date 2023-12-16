@@ -158,7 +158,11 @@
                       placeholder="Coupon code"
                     />    
                     <%}%>
-                  <button class="btn btn-light border" type="button" id="applyCouponBtn" >Apply</button>
+
+                   
+                        <button class="btn btn-light border" type="button" id="applyCouponBtn" >Apply</button>
+                     
+                 
                 </div>
               </div>
           </div>
@@ -244,10 +248,14 @@
 document.addEventListener("DOMContentLoaded", function() {
 
   const applyCouponBtn = document.getElementById("applyCouponBtn");
-  applyCouponBtn.addEventListener("click", function(event) {
-  applyCoupon();
-  event.preventDefault();
-  });
+  if(applyCouponBtn){
+    applyCouponBtn.addEventListener("click", function(event) {
+    applyCoupon();
+    event.preventDefault();
+    });
+  }
+
+  
 
     const decreaseButtons = document.querySelectorAll(".decrease-quantity");
     const increaseButtons = document.querySelectorAll(".increase-quantity");

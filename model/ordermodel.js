@@ -92,6 +92,16 @@ const orderSchema = new Schema({
     },
     orderUuid:{
         type:String
+    },
+    isMultiplePayment:{
+        isMultiple:{
+            type:Boolean,
+            default:false
+        },
+        Amount:{
+            type:Number,
+            default:0,
+        }
     }
 });
 

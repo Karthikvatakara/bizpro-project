@@ -135,7 +135,7 @@ const getuserordercancel = async(req,res) =>{
         if(Order.PaymentMethod === 'cod'){
         await checkavailability(req.params.id);
         res.json({success:true,message:'order cancelled succesfully'})
-        }else if(Order.PaymentMethod === "online" || Order.PaymentMethod === "wallet"){
+        }else if(Order.PaymentMethod === "online" || Order.PaymentMethod === "wallet" || Order.PaymentMethod === "wallet+cod" || Order.PaymentMethod === "wallet+online"){
         await checkavailability(req.params.id)
 
         const walletTransaction = {
