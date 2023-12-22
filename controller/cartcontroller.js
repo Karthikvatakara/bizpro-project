@@ -105,6 +105,7 @@ const updatingquantity = async (req, res) => {
           req.flash('error', message);
         }
         const cart = await cartModel.findOne({userId:req.session.user._id}).populate('products.productId').populate('coupon')
+        console.log("cart==", cart)
         res.render('user/cart',{user:req.session.user,cart,messages:req.flash()})
     }catch(error){
       console.log(`an error happened ${error}`);
@@ -426,6 +427,7 @@ const updatingquantity = async (req, res) => {
       }else if(paymentMethod ==='online'){
         
         const orders = await neworders.save()  ///order is placed//
+        const ord = await ordermodel.findOneAndUpdate({_id:orders._id},{Status:'attempted'})
         userCouponInsert();
         const orderdetails =  {
           amount:orders.TotalPrice,
@@ -434,33 +436,8 @@ const updatingquantity = async (req, res) => {
         const user = await usermodel.findOne({_id:req.session.user._id})
         const order = await Razorpay.createRazorpayOrder(orderdetails)
         console.log(order,"hiiiiii");
+        res.json({status: true,order,user})
         
-        
-        for(const product of orders.products){
-          console.log(product._id,"PRODUCT ID");
-          console.log(product.Quantity,"PRODUCT QUANTITY");
-          const Product = await productModel.findById(product.productId)
-          if(Product){
-            const newQuantity = Product.AvailableQuantity - product.Quantity
-            // console.log(newQuantity);
-            if(newQuantity <= 0) {
-              Product.AvailableQuantity = 0;
-              Product.Status = "OUT OF STOCK"
-              await Product.save();
-            }else{
-              Product.AvailableQuantity =Product.AvailableQuantity - product.Quantity
-              await Product.save();
-              const deletedcart = await cartModel.findByIdAndDelete(cart._id)   //cart deleted//
-            }
-          }else{
-            req.flash("err","product is not found")
-            res.rediret('/cart')
-          }
-          console.log(order,user)
-          res.json({status: true,order,user})
-        }
-
-
       }else if(paymentMethod === "wallet"){
         // console.log(req.session.totalPrice);
         const user = await usermodel.findOne({_id:req.session.user._id})
@@ -511,8 +488,8 @@ const updatingquantity = async (req, res) => {
           const remainingAmount = WalletAmount-totalPrice
           const user = await usermodel.findByIdAndUpdate(req.session.user._id,{WalletAmount:remainingAmount,$push:{walletTransactions:walletTransaction}},{new:true})
           const order = await ordermodel.findOneAndUpdate({_id:orders._id},{PaymentStatus:"paid"})
-          console.log(user);
-          console.log(order);
+          // console.log(user);
+          // console.log(order);
         }else{
           if( WalletAmount == 0){
             console.log("wallet is 0");
@@ -565,15 +542,35 @@ const updatingquantity = async (req, res) => {
     }
       console.log("reached");
       const generatedSignature = generateSignature(req.body.payment.razorpay_order_id + "|" + req.body.payment.razorpay_payment_id,'kI2Wwrnm0R3qsx0GbvgrErXm')
-      // console.log(req.body);
-      // console.log(generatedSignature);
-      // console.log(req.body.payment.razorpay_signature);
+      
       if(generatedSignature === req.body.payment.razorpay_signature){
         const orderId = new mongoose.Types.ObjectId( req.body.order.receipt);
         const updatedorder = await ordermodel.findByIdAndUpdate(orderId,{PaymentStatus:"paid",Status:"Order Placed"})
-        console.log(updatedorder);
+        // console.log(updatedorder);
         const deletedcart = await cartModel.findOneAndDelete({userId:req.session.user._id})
-        console.log(updatedorder);
+        // console.log(updatedorder);
+        const orders = await ordermodel.findOne({_id:orderId})
+        for(const product of orders.products){
+          console.log(product._id,"PRODUCT ID");
+          console.log(product.Quantity,"PRODUCT QUANTITY");
+          const Product = await productModel.findById(product.productId)
+          if(Product){
+            const newQuantity = Product.AvailableQuantity - product.Quantity
+            // console.log(newQuantity);
+            if(newQuantity <= 0) {
+              Product.AvailableQuantity = 0;
+              Product.Status = "OUT OF STOCK"
+              await Product.save();
+            }else{
+              Product.AvailableQuantity =Product.AvailableQuantity - product.Quantity
+              await Product.save();
+            }
+          }else{
+            req.flash("err","product is not found")
+            res.rediret('/cart')
+          }
+        }
+
         res.json({success:true, url:'/ordersuccess'})
       }else{
         res.status(403).json({success:false,error:"invalid signature"})
@@ -587,7 +584,7 @@ const updatingquantity = async (req, res) => {
     try{
       const {selectedPaymentMethod, WalletAmount,totalPrice,OrderDetails,cart}  =req.body
 
-      async function userCouponInsert(){
+      async function userCouponInsert(){       
         const cart = await cartModel.findOne({ userId:req.session.user._id }).populate('coupon');
         if(cart.coupon){
         
@@ -614,7 +611,7 @@ const updatingquantity = async (req, res) => {
         }
         }}
 
-      if(selectedPaymentMethod == 'cod')   {
+      if(selectedPaymentMethod == 'cod'){
         const newOrders = new ordermodel(OrderDetails)
         const orders = await newOrders.save() 
         userCouponInsert();
@@ -668,31 +665,123 @@ const updatingquantity = async (req, res) => {
 
 
       }else if(selectedPaymentMethod == 'online'){
-
-        const newOrders = new ordermodel(OrderDetails)
-        const orders = await newOrders.save() 
+        const neworders = new ordermodel(OrderDetails)
+        const orders = await neworders.save()  ///order is placed//
+        const ord = await ordermodel.findOneAndUpdate({_id:orders._id},{Status:'attempted'})
         userCouponInsert();
-
         const orderdetails =  {
-          amount:orders.TotalPrice-WalletAmount,
+          amount:orders.TotalPrice,
           receipt:orders._id,
         }
         const user = await usermodel.findOne({_id:req.session.user._id})
         const order = await Razorpay.createRazorpayOrder(orderdetails)
         console.log(order,"hiiiiii");
+        res.json({status: true,onlineSuccess:true,order,user})
         
 
-        const deletedcart = await cartModel.findByIdAndDelete(cart._id)  
+        // const newOrders = new ordermodel(OrderDetails)
+        // const orders = await newOrders.save() 
+        // userCouponInsert();
 
-        const multiplePayment = await ordermodel.findOneAndUpdate(
-          { _id: orders._id },
+        // const orderdetails =  {
+        //   amount:orders.TotalPrice-WalletAmount,
+        //   receipt:orders._id,
+        // }
+        // const user = await usermodel.findOne({_id:req.session.user._id})
+        // const order = await Razorpay.createRazorpayOrder(orderdetails)
+        // console.log(order,"hiiiiii");
+        
+
+      //   const deletedcart = await cartModel.findByIdAndDelete(cart._id)  
+
+      //   const multiplePayment = await ordermodel.findOneAndUpdate(
+      //     { _id: orders._id },
+      //     {
+      //       $set: { 'isMultiplePayment.isMultiple': true },
+      //       $inc: { 'isMultiplePayment.Amount': WalletAmount }
+      //     }
+      //   );
+      //   console.log(multiplePayment,"multiplepayment");
+      //   const wallet = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$inc:{WalletAmount:-WalletAmount}})
+      //   const WalletTransaction = {
+      //     orderId  : orders._id,
+      //     Status: 'Debited',
+      //     Date:new Date(),
+      //     Amount: WalletAmount,
+      //     OrderDetails:'Order Placed',
+      //     paymentMethod: "wallet+online",
+      //     products:orders.products
+      // }
+
+      //   const cuurentUser = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$push:{walletTransactions:WalletTransaction}})
+      //   console.log("hi iam karthik");
+      //    const Orders = await ordermodel.findOneAndUpdate({_id:orders._id},{PaymentMethod:"wallet+online"},{new: true})
+      //    console.log(orders._id,'hhh');
+      //    console.log(Orders.PaymentMethod,"jjjjjjjjj");
+      //   // console.log(Orders.PaymentMethod,"again reached here?");
+
+      //   for(const product of orders.products){
+      //     console.log(product._id,"PRODUCT ID");
+      //     console.log(product.Quantity,"PRODUCT QUANTITY");
+      //     const Product = await productModel.findById(product.productId)
+      //     if(Product){
+      //       const newQuantity = Product.AvailableQuantity - product.Quantity
+      //       // console.log(newQuantity);
+      //       if(newQuantity <= 0) {
+      //         Product.AvailableQuantity = 0;
+      //         Product.Status = "OUT OF STOCK"
+      //         await Product.save();
+      //       }else{
+      //         Product.AvailableQuantity =Product.AvailableQuantity - product.Quantity
+      //         await Product.save();
+      //         const deletedcart = await cartModel.findByIdAndDelete(cart._id)   //cart deleted//
+      //       }
+      //     }else{
+      //       req.flash("err","product is not found")
+      //       res.rediret('/cart')
+      //     }
+      //     console.log(order,user)
+      //     res.json({status: true,onlineSuccess:true,order,user})
+      //   }
+      }
+
+    }catch(error){  
+      console.log(error);
+    }
+  }
+
+  const postWalletOnlineVerifyPayment = async(req,res) =>{
+    try{
+      console.log(req.body,"verifypayment");
+      function generateSignature(data, secret) {
+        const hmac = crypto.createHmac('sha256', 'kI2Wwrnm0R3qsx0GbvgrErXm');
+        hmac.update(data);
+        return hmac.digest('hex');
+    }
+      const generatedSignature = generateSignature(req.body.payment.razorpay_order_id + "|" + req.body.payment.razorpay_payment_id,'kI2Wwrnm0R3qsx0GbvgrErXm')
+
+      if(generatedSignature === req.body.payment.razorpay_signature){
+        const orderId = new mongoose.Types.ObjectId( req.body.order.receipt);
+        console.log(orderId,"orderID of the users")
+        const updatedorder = await ordermodel.findByIdAndUpdate(orderId,{PaymentStatus:"paid",Status:"Order Placed"})
+        const deletedcart = await cartModel.findOneAndDelete({userId:req.session.user._id})
+        const orders = await ordermodel.findOne({_id:orderId})
+        const WalletAmount = await usermodel.findOne({_id:req.session.user._id})
+        console.log(orders._id,"akkkkkkkkkkkkkkkkk")
+        const user = await usermodel.findOne({_id:req.session.user._id})
+        console.log(orders._id)
+        const multiplePayment = await ordermodel.findByIdAndUpdate(
+          orders._id,
           {
             $set: { 'isMultiplePayment.isMultiple': true },
-            $inc: { 'isMultiplePayment.Amount': WalletAmount }
+            $inc: { 'isMultiplePayment.Amount': user.WalletAmount }
+          },
+          {
+            new: true
           }
         );
         console.log(multiplePayment,"multiplepayment");
-        const wallet = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$inc:{WalletAmount:-WalletAmount}})
+        const wallet = await usermodel.findOneAndUpdate({_id:req.session.user._id},{$inc:{WalletAmount:-(user.WalletAmount)}})
         const WalletTransaction = {
           orderId  : orders._id,
           Status: 'Debited',
@@ -724,19 +813,19 @@ const updatingquantity = async (req, res) => {
             }else{
               Product.AvailableQuantity =Product.AvailableQuantity - product.Quantity
               await Product.save();
-              const deletedcart = await cartModel.findByIdAndDelete(cart._id)   //cart deleted//
             }
           }else{
             req.flash("err","product is not found")
             res.rediret('/cart')
           }
-          console.log(order,user)
-          res.json({status: true,onlineSuccess:true,order,user})
         }
-      }
 
-    }catch(error){  
-      console.log(error);
+        res.json({success:true,onlineOrderSuccess:true,url:'/ordersuccess'})
+      }else{
+        res.status(403).json({success:false,error:"invalid signature"})
+      }
+    }catch(error){
+
     }
   }
 
@@ -752,5 +841,6 @@ module.exports = {
   getprofilecart, 
   postverifypayment, 
   getcartinsideForSafeer,
-  postWalletCheckout
+  postWalletCheckout,
+  postWalletOnlineVerifyPayment
 }

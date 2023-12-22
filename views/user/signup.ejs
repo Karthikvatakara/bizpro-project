@@ -70,21 +70,22 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Imprima:wght@400&display=swap"
     />
-  <title>Document</title>
+  <title>Sign up</title>
+  <script>
+       function togglePassword1(inputId) {
+        console.log('CALLED FOR......');
+      var x = document.getElementById(inputId);
+      if (x.type === "password") {
+        x.type = "text";
+      } else {
+        x.type = "password";
+      }
+    }
+  </script>
 </head>
 <body>
   
-  <header>
-    <nav class="navbar bg-body-tertiary p-0">
-      <div class="container-fluid d-flex justify-content-between align-items-middle" style="background-color: #f8eded;">
-          <div class="align-self-start"> <!-- Align the image to the left -->
-              <a class="navbar-brand" href="/homepage">
-                  <img src="/images/screenshot--272-removebgpreview-1@2x.png" style="max-height: 70px;" alt="">
-              </a>
-          </div>
-      </div>
-    </nav>
-    </header>
+
   <section id="signupCard" class="vh-100">
     <div class="container" >
       <div class="row justify-content-center">
@@ -94,7 +95,9 @@
               <div class="icons text-center">
                 <h1>SIGN UP</h1>
             </div>
-                <form id="signupForm" class="icons" action="/signup" method="post">
+                <!-- <form id="signupForm" class="icons" action="/signup" method="post" onsubmit="return validateSignupForm()"> -->
+                  <form id="signupForm" action="/signup" method="post" onsubmit="return validateSignupForm()">
+
                   <% if (messages.error) { %>
                   <div class="alert alert-danger"><%= messages.error %></div>
                   <% } %>
@@ -106,20 +109,21 @@
                       id="name"
                       name="name"
                       placeholder="Enter your name"
-                      required
                     />
                   </div>
+                  <p id="name-error-message" style="color: #bf1717; text-align: center;"></p>
                   <div class="form-group mt-3">
                     <label for="email">Email Address</label>
                     <input
-                      type="email"
+                      type="text"
                       class="form-control mt-2"
                       id="email"
                       name="email"
                       placeholder="Enter your email address"
-                      required
                     />
                   </div>
+                  <p id="email-error-message" style="color: #bf1717; text-align: center;"></p>
+
                   <div class="form-group mt-3">
                     <label for="password">Password</label>
                     <div class="input-group mt-2">
@@ -127,17 +131,16 @@
                         type="password"
                         class="form-control"
                         name="password"
-                        id="passwordInput"
+                        id="password"
                         placeholder="Enter your password"
-                        minlength="8"
-                        required
+                        
                       />
                       <div class="input-group-append">
                         <button
                           class="btn btn-outline-none"
                           type="button"
                           id="showPasswordOne"
-                          onclick="togglePassword('passwordInput')"
+                          onclick="togglePassword1('password')"
                         >
                           <i class="fas fa-eye"></i>
                         </button>
@@ -145,28 +148,34 @@
                     </div>
                   </div>
                   <p id="strength">Strength:</p>
+                  <p id="password-error-message" style="color: #bf1717; text-align: center;"></p>
+
                   <div class="from-group mt-3">
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="input-group mt-2">
                       <input
                         type="password"
                         class="form-control"
-                        id="confirmPasswordInput"
+                        id="confirmPassword"
                         name="confirmpassword"
                         placeholder="Confirm your password"
-                        required
+                        
                       />
+
                       <div class="input-group-append">
                         <button
                           class="btn btn-outline-none"
                           type="button"
                           id="showPasswordTwo"
-                          onclick="togglePassword('confirmPasswordInput')"
+                          onclick="togglePassword1('confirmPassword')"
                         >
-                          <div class="border "><i class="fas fa-eye "></i></div>
+                          <div><i class="fas fa-eye "></i></div>
                         </button>
                       </div>
+
                     </div>
+                    <p id="confirm-password-error-message" style="color: #bf1717; text-align: center;"></p>
+
                   </div>
                   <div class="text-center mt-3">
                     <button
@@ -200,32 +209,88 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ionicons/7.1.2/esm/ionicons.min.js" integrity="sha512-2ySmquu6HK3CAvwLllh0R8K8buFPMZsUwWLZIlB7WW8c8ilUtoNyhsmEsQn2U0IV1USr2Oc/9DJzlr4cxAbuxA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script>
-    function togglePassword(inputId) {
-      var x = document.getElementById(inputId);
-      if (x.type === "password") {
-        x.type = "text";
-      } else {
-        x.type = "password";
-      }
+  
+  
+    <script>
+     
+
+    const validateSignupForm = () => {
+        var name = document.getElementById("name").value;
+        var email = document.getElementById("email").value;
+        
+        var password = document.getElementById("password").value;
+        var confirmPassword = document.getElementById("confirmPassword").value;
+        console.log(name,email,password,confirmPassword,"asfaafsd")
+        // Reset previous error messages
+        
+        
+        const nameErrorMessage = document.getElementById('name-error-message');
+        const emailErrorMessage = document.getElementById('email-error-message');
+        const passwordErrorMessage = document.getElementById('password-error-message');
+        const confirmPasswordErrorMessage = document.getElementById('confirm-password-error-message');
+        nameErrorMessage.innerHTML = "";
+        emailErrorMessage.innerHTML = "";
+        passwordErrorMessage.innerHTML = "";
+        confirmPasswordErrorMessage.innerHTML = "";
+
+
+        
+        // Check if name is empty
+        if (name.trim() === "") {
+            nameErrorMessage.innerHTML = "Please enter your name";
+            setTimeout(() => {
+                nameErrorMessage.innerHTML = "";
+            }, 1000);
+            return false;
+        }
+
+        if (name.length > 16) {
+        nameErrorMessage.innerHTML = "please enter a short name";
+        setTimeout(() => {
+            nameErrorMessage.innerHTML = "";
+        }, 2000);
+        return false;
     }
-  
-    document.addEventListener('DOMContentLoaded', function () {
-      const passwordInput = document.getElementById('passwordInput');
-      const confirmPasswordInput = document.getElementById('confirmPasswordInput');
-      const showPasswordOne = document.getElementById('showPasswordOne');
-      const showPasswordTwo = document.getElementById('showPasswordTwo');
-  
-      showPasswordOne.addEventListener('click', function () {
-        togglePassword('passwordInput');
-      });
-  
-      showPasswordTwo.addEventListener('click', function () {
-        togglePassword('confirmPasswordInput');
-      });
-    });
-  </script>
-  
+
+        // Check if email is empty or not a valid email format
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email.trim() === "") {
+            emailErrorMessage.innerHTML = "Please enter a valid email";
+            setTimeout(() => {
+                emailErrorMessage.innerHTML = "";
+            }, 1000);
+            return false;
+        } else if (!emailRegex.test(email)) {
+            emailErrorMessage.innerHTML = "Please enter a valid email address";
+            setTimeout(() => {
+                emailErrorMessage.innerHTML = "";
+            }, 1000);
+            return false;
+        }
+
+        // Check if password contains at least one letter, one number, and is at least 8 characters long
+        if (!/(?=.*[a-zA-Z])(?=.*\d).{8,}/.test(password)) {
+        passwordErrorMessage.innerHTML = "Password must contain at least one letter, one number, and be at least 8 characters long";
+        setTimeout(() => {
+            passwordErrorMessage.innerHTML = "";
+        }, 2000);
+        return false;
+    }
+
+    // Check if confirm password matches the password
+    if (password !== confirmPassword) {
+        confirmPasswordErrorMessage.innerHTML = "Password does not match";
+        setTimeout(() => {
+            confirmPasswordErrorMessage.innerHTML = "";
+        }, 2000);
+        return false;
+    }
+
+        // If all validations pass, you can proceed with submitting the form
+        return true;
+    }
+ 
+</script>
   
 </body>
 </html>

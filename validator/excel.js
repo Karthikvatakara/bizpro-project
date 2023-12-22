@@ -13,8 +13,8 @@ module.exports = {
 
     // Add data
     orders.forEach((order, rowIndex) => {
-      ws.cell(rowIndex + 2, 1).string(order.userId.toString()); // Ensure userId is a string
-      ws.cell(rowIndex + 2, 2).string(`#ORD-${order._id}`);
+      ws.cell(rowIndex + 2, 1).string(`#usr-${order.userId.toString()}`); // Ensure userId is a string
+      ws.cell(rowIndex + 2, 2).string(`#ORD-${order.orderUuid}`);
       
       // Format date
       const formattedDate = new Date(order.OrderDate).toLocaleDateString('en-US');

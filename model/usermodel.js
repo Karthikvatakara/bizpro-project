@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
+const Schema = mongoose.Schema;
 
-const Userschema = mongoose.Schema( {
+const Userschema = new Schema( {
     name:{
         type:String,
     },
@@ -39,7 +40,7 @@ const Userschema = mongoose.Schema( {
         type:Array,
      },
      usedCoupons:[{
-        couponId:{type:mongoose.Types.ObjectId},
+        couponId:{type:Schema.Types.ObjectId},
         couponName:{type:String},
         couponcode:{type:String},
         count:{type:Number}
@@ -48,8 +49,12 @@ const Userschema = mongoose.Schema( {
         type:String
      },
      wishlist:[{
-        ProductId:{type:mongoose.Types.ObjectId,ref:"Product"}
+        ProductId:{
+         type:Schema.Types.ObjectId,
+         ref:"Product"
+        },
      }]
 })
 
-module.exports = mongoose.model("user" , Userschema)
+const user = mongoose.model("user" , Userschema)
+module.exports = user

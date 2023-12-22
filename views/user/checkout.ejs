@@ -12,6 +12,7 @@
             </div>
             <div class="modal-body">
               <form action="/addaddress-checkout" method="post" onsubmit="return validateForm()">
+               
                 <div class="mb-3">
                   <label for="fullName" class="form-label">Full Name</label>
                   <input type="text" class="form-control" name="Name" id="fullName" placeholder="Enter your full name"
@@ -42,6 +43,9 @@
                   <input type="tel" class="form-control" id="mobileNumber" name="Mobile"
                     placeholder="Enter your mobile number" required />
                 </div>
+                <div class="error-message"
+                style="display: none; font-weight: bold; color: #ff0019; padding: 10px; "
+                id="errorMessage"></div>
                 <button type="submit" class="btn btn-primary">Submit</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                   Close
@@ -292,158 +296,156 @@
               if (!response.status) {
                 console.log("nullll");
                 window.location.href = response.url
-              } else if(response.address && response.status){
+              } else if (response.address && response.status) {
                 console.log('inside swallll');
                 Swal.fire({
-                title: 'Add Address',
-                text: 'Please add your address.',
-                icon: 'warning',
-                showCancelButton: false,
-                confirmButtonText: 'OK'
-                  }).then((result) => {
-     
-                if (result.isConfirmed) {
-            // Additional logic if needed, but no page redirection
-                console.log('User clicked OK. No page redirection.');
-                 }
+                  title: 'Add Address',
+                  text: 'Please add your address.',
+                  icon: 'warning',
+                  showCancelButton: false,
+                  confirmButtonText: 'OK'
+                }).then((result) => {
+
+                  if (result.isConfirmed) {
+                    // Additional logic if needed, but no page redirection
+                    console.log('User clicked OK. No page redirection.');
+                  }
                 });
 
                 console.log(response);
-              }else if(response.wallet && response.status){
+              } else if (response.wallet && response.status) {
                 let WalletAmount = response.WalletAmount
                 let totalPrice = response.totalPrice
                 let Address = response.Address
                 let newOrders = response.neworders
                 let cart = response.cart
-                console.log(cart,"cartconsolled");  
+                console.log(cart, "cartconsolled");
 
                 Swal.fire({
-                title: 'Confirmation',
-                text: `The wallet contains only ${WalletAmount} rupees. Are you sure you want to continue?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Continue',
-                cancelButtonText: 'Cancel',
-                reverseButtons: true,
+                  title: 'Confirmation',
+                  text: `The wallet contains only ${WalletAmount} rupees. Are you sure you want to continue?`,
+                  icon: 'question',
+                  showCancelButton: true,
+                  confirmButtonText: 'Continue',
+                  cancelButtonText: 'Cancel',
+                  reverseButtons: true,
                 }).then((walletResult) => {
-               if (walletResult.isConfirmed) {
-                 // User clicked "Continue" for wallet, show payment method modal
-                Swal.fire({
-                 title: 'Select Payment Method For Remaining!',
-                input: 'radio',
-                inputOptions: {
-                'cod': 'Cash on Delivery',
-                'online': 'Online Delivery',
-                },
-              inputValidator: (value) => {
-               // Check if a payment method is selected
-               if (!value) {
-              return 'Please select a payment method';
-              }
-              },
-              showCancelButton: true,
-              confirmButtonText: 'Proceed',
-              cancelButtonText: 'Cancel',
-              allowOutsideClick: false,
-              }).then((paymentResult) => {
-              if (paymentResult.isConfirmed) {
-        // User selected a payment method, you can handle the logic here
-                const selectedPaymentMethod = paymentResult.value;
-                  console.log(selectedPaymentMethod);
-                  console.log(WalletAmount,"walletamount");
-                console.log(totalPrice,"totalprice")
-                console.log(Address,"ADDRESS OF USER");
-                // Swal.fire('Payment Method Selected!', `You chose ${selectedPaymentMethod}`, 'success');
-                $.ajax({
-                  url:'/walletcheckout',
-                  method:'POST',
-                  data:{
-                    selectedPaymentMethod:selectedPaymentMethod,
-                    WalletAmount:WalletAmount,
-                    totalPrice:totalPrice,
-                    OrderDetails:newOrders,
-                    cart:cart,
-                  },
-                  success:(response)=>{
-                    console.log("success");
-                    if(!response.status && response.codsuccess){
-                      window.location.href = response.url;
-                    }else if(!response.status){
-                      window.location.href = response.url;
-                    }else if(response.status && response.onlineSuccess){
+                  if (walletResult.isConfirmed) {
+                    // User clicked "Continue" for wallet, show payment method modal
+                    Swal.fire({
+                      title: 'Select Payment Method For Remaining!',
+                      input: 'radio',
+                      inputOptions: {
+                        'cod': 'Cash on Delivery',
+                        'online': 'Online Delivery',
+                      },
+                      inputValidator: (value) => {
+                        // Check if a payment method is selected
+                        if (!value) {
+                          return 'Please select a payment method';
+                        }
+                      },
+                      showCancelButton: true,
+                      confirmButtonText: 'Proceed',
+                      cancelButtonText: 'Cancel',
+                      allowOutsideClick: false,
+                    }).then((paymentResult) => {
+                      if (paymentResult.isConfirmed) {
+                        // User selected a payment method, you can handle the logic here
+                        const selectedPaymentMethod = paymentResult.value;
+                        console.log(selectedPaymentMethod);
+                        console.log(WalletAmount, "walletamount");
+                        console.log(totalPrice, "totalprice")
+                        console.log(Address, "ADDRESS OF USER");
+                        // Swal.fire('Payment Method Selected!', `You chose ${selectedPaymentMethod}`, 'success');
+                        $.ajax({
+                          url: '/walletcheckout',
+                          method: 'POST',
+                          data: {
+                            selectedPaymentMethod: selectedPaymentMethod,
+                            WalletAmount: WalletAmount,
+                            totalPrice: totalPrice,
+                            OrderDetails: newOrders,
+                            cart: cart,
+                          },
+                          success: (response) => {
+                            console.log("success");
+                            if (!response.status && response.codsuccess) {
+                              window.location.href = response.url;
+                            } else if (!response.status) {
+                              window.location.href = response.url;
+                            } else if (response.status && response.onlineSuccess) {
 
-                      console.log("sucessfully reached");
-                      const newResponse = response
+                              console.log("sucessfully reached");
+                              const newResponse = response
 
-                  var options = {
-                    "key": "rzp_test_mzVcxquSaxgXW5", // Enter the Key ID generated from the Dashboard
-                    "amount": response.order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-                    "currency": "INR",
-                    "name": "Acme Corp",
-                    "description": "Test Transaction",
-                    "image": "https://example.com/your_logo",
-                    "order_id": response.order.id,
-                    "handler": function (response) {
-                      console.log("hai test");
-                      verifypayment(response, newResponse.order);
-                    },
-                    "prefill": {
-                      "name": "user.name",
-                      "email": "user.email",
-                      "contact": "9000090000"
-                    },
-                    "notes": {
-                      "address": "Razorpay Corporate Office"
-                    },
-                    "theme": {
-                      "color": "#3399cc"
-                    }
-                  };
-                  var rzp1 = new Razorpay(options);
-                  rzp1.open();
-                  e.preventDefault();
-
-
-                    }
-                  },
-                  error:(error)=>{
-                    console.log(error);
-                  }
-                })
-                } else {
-                // User clicked "Cancel" in the payment method modal
-                Swal.fire('Payment Canceled', 'You have canceled the payment method selection.', 'info');
-                 }
-                 });
+                              var options = {
+                                "key": "rzp_test_mzVcxquSaxgXW5", // Enter the Key ID generated from the Dashboard
+                                "amount": response.order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                                "currency": "INR",
+                                "name": "Acme Corp",
+                                "description": "Test Transaction",
+                                "image": "https://example.com/your_logo",
+                                "order_id": response.order.id,
+                                "handler": function (response) {
+                                  console.log("hai test");
+                                  walletCodVerifyPayment(response, newResponse.order);
+                                },
+                                "prefill": {
+                                  "name": "user.name",
+                                  "email": "user.email",
+                                  "contact": "9000090000"
+                                },
+                                "notes": {
+                                  "address": "Razorpay Corporate Office"
+                                },
+                                "theme": {
+                                  "color": "#3399cc"
+                                }
+                              };
+                              var rzp1 = new Razorpay(options);
+                              rzp1.open();
+                              e.preventDefault();
+                            }
+                          },
+                          error: (error) => {
+                            console.log(error);
+                          }
+                        })
+                      } else {
+                        // User clicked "Cancel" in the payment method modal
+                        Swal.fire('Payment Canceled', 'You have canceled the payment method selection.', 'info');
+                      }
+                    });
                   } else {
-                 // User clicked "Cancel" or closed the wallet confirmation modal
-                  Swal.fire('Action Canceled', 'You have canceled the action.', 'info');
+                    // User clicked "Cancel" or closed the wallet confirmation modal
+                    Swal.fire('Action Canceled', 'You have canceled the action.', 'info');
                   }
-                  });
+                });
 
-            }else if(response.status && response.emptyWallet){
-              Swal.fire({
-              title: 'Wallet Balance',
-              text: 'Your wallet balance is 0.',
-               icon: 'warning',
-               confirmButtonText: 'OK',
-              showCancelButton: false,
-              }).then((result) => {
-               if (result.isConfirmed) {
-              // Handle the OK button click if needed
-              console.log('OK button clicked');
-               }
-              });
+              } else if (response.status && response.emptyWallet) {
+                Swal.fire({
+                  title: 'Wallet Balance',
+                  text: 'Your wallet balance is 0.',
+                  icon: 'warning',
+                  confirmButtonText: 'OK',
+                  showCancelButton: false,
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    // Handle the OK button click if needed
+                    console.log('OK button clicked');
+                  }
+                });
 
 
-            }
-              else{
+              }
+              else {
                 if (response.codsuccess) {
                   console.log("reached");
                   window.location.href = response.url
                 }
                 else {
-                  console.log(response);
+                  console.log(response, "coddddddddddddd");
                   console.log(response.order.amount);
                   console.log(response.user)
                   const newResponse = response
@@ -487,11 +489,6 @@
                 $.ajax({
                   url: '/verify-payment',
                   method: 'post',
-                  // data:JSON.stringify({
-                  //   razorpay_order_id: payment.razorpay_order_id,
-                  //   razorpay_payment_id:payment.razorpay_payment_id,
-                  //   razorpay_signature: payment.razorpay_signature,
-                  // }),
                   data: { payment, order },
                   success: (response) => {
                     console.log(response);
@@ -504,51 +501,76 @@
                 })
               }
 
+              const walletCodVerifyPayment = (payment, order) => {
+                console.log("reached wallet cod verify payment");
+                $.ajax({
+                  url: '/walletOnlineVerifyPayment',
+                  method: 'POST',
+                  data: { payment, order },
+                  success: (response) => {
+                    // res.json({success:true,onlineOrderSuccess:true,url:'/ordersuccess'})
+                    if (response.success && response.onlineOrderSuccess) {
+                      window.location.href = response.url
+                    }
+                  },
+                  error: (error) => {
+
+                  }
+                })
+              }
 
             }
           })
         })
 
         function validateForm() {
-    // Get form inputs
-    var fullName = document.getElementById('fullName').value;
-    var address = document.getElementById('address').value;
-    var city = document.getElementById('city').value;
-    var pincode = document.getElementById('pincode').value;
-    var state = document.getElementById('state').value;
-    var mobileNumber = document.getElementById('mobileNumber').value;
+          // Get form inputs
+          var fullName = document.getElementById('fullName').value;
+          var address = document.getElementById('address').value;
+          var city = document.getElementById('city').value;
+          var pincode = document.getElementById('pincode').value;
+          var state = document.getElementById('state').value;
+          var mobileNumber = document.getElementById('mobileNumber').value;
 
-    // Validate each field
-    if (fullName === '' || address === '' || city === '' || pincode === '' || state === '' || mobileNumber === '') {
-        alert('Please fill in all fields.');
-        return false;
-    }
+          // Validate each field
+          if (fullName === '' || address === '' || city === '' || pincode === '' || state === '' || mobileNumber === '') {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.innerHTML = 'Please fill in all fields. !';
+            errorMessage.style.display = 'block';
+            return false;
+          }
 
-    // Additional validation for fullName, address, city, and state
-    var nameRegex = /^[a-zA-Z]+$/;
-    if (!fullName.match(nameRegex) || !address.match(nameRegex) || !city.match(nameRegex) || !state.match(nameRegex)) {
-        alert('Invalid characters in name, address, city, or state fields.');
-        return false;
-    }
 
-    // Validate pincode
-    var pincodeRegex = /^[1-9]\d{5}$/;
-    if (!pincode.match(pincodeRegex)) {
-        alert('Pincode must be a 6-digit number starting with a digit other than 0.');
-        return false;
-    }
+          // Additional validation for fullName, address, city, and state
+          var nameRegex = /^[a-zA-Z]+$/;
+          if (!fullName.match(nameRegex) || !address.match(nameRegex) || !city.match(nameRegex) || !state.match(nameRegex)) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.innerHTML = 'Invalid characters in name, address, city, or state fields. !';
+            errorMessage.style.display = 'block';
+            return false;
+          }
 
-    // Validate mobile number
-    var mobileRegex = /^[1-9]\d{9}$/;
-    if (!mobileNumber.match(mobileRegex)) {
-        alert('Mobile number must be a 10-digit number starting with a digit other than 0.');
-        return false;
-    }
+          // Validate pincode
+          var pincodeRegex = /^[1-9]\d{5}$/;
+          if (!pincode.match(pincodeRegex)) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.innerHTML = 'Pincode is not valid !';
+            errorMessage.style.display = 'block';
+            return false;
+          }
 
-    // If all validations pass, allow the form to be submitted
-    return true;
-}
+          // Validate mobile number
+          var mobileRegex = /^[1-9]\d{9}$/;
+          if (!mobileNumber.match(mobileRegex)) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.innerHTML = 'Mobile number is not valid !';
+            errorMessage.style.display = 'block';
+            return false;
+          }
 
-</script>
+          return true;
+        }
 
-<%- include('../user/layouts/footer') %>
+      </script>
+
+      <%- include('../user/layouts/footer') %>

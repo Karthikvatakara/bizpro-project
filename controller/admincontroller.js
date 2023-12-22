@@ -27,7 +27,7 @@ const getuserlist = async(req,res) => {
 
       const skip = (page - 1) * perPage;
 
-      const users = await userModel.find(filter).skip(skip).limit(perPage);
+      const users = await userModel.find(filter).skip(skip).limit(perPage).sort({_id:-1});
       const totalCount = await userModel.countDocuments(filter);
 
         res.render('admin/manageusers',{users,currentPage:page,perPage,totalCount,totalPages:Math.ceil(totalCount/perPage),searchQuery})

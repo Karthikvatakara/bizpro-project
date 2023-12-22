@@ -42,9 +42,7 @@
           <a href="/wallet" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
             Wallet
           </a>
-          <!-- <a href="/profile/change-password" class="card-text btn btn-block text-dark col-md-12 d-flex justify-content-center border my-2">
-            Change password
-          </a> -->
+          
         </div>
       </div>
 
@@ -53,7 +51,7 @@
         <span class="d-flex justify-content-start fw-bold">Your referral link :</span>
         <div class="d-flex justify-content-start">
           <span class="d-inline-block text-truncate text-primary" style="max-width: 200px; cursor: text;" id="referral-link">
-            localhost:8000/signup/<%= user._id %>
+            https://bizprogym.shop/signup/<%= user?.userUuid %>
           </span>
           <button id="copyButton" class="fa fa-copy fa-xl border-0"></button>
         </div>
@@ -76,21 +74,7 @@
               required
             />
           </div><br />
-          <!-- <div class="form-group">
-            <label for="Phone">Phone:</label>
-            <input
-              type="text"
-              name="Phone"
-              class="form-control bg-light"
-              id="Phone"
-              <% if (user) { %>
-                value="<%= user.Phone %>"
-              <% } else { %>
-                placeholder="Enter your phone and update"
-              <% } %>
-              required
-            />
-          </div><br /> -->
+        
           <div class="form-group">
             <label for="Email">Email:</label>
             <input

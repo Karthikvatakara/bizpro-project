@@ -294,6 +294,11 @@
         return false;
       }
 
+      if (productName.length > 12) {
+        alert('Product name must be less than 12 characters.');
+        return false;
+     }
+
       if (isNaN(basePrice) || basePrice <= 0) {
         alert('Base price must be a positive number.');
         return false;

@@ -40,7 +40,7 @@
                 <p class="card-text">Order Status: <%= order.Status %></p>
                 <p class="card-text">Payment Status: <%= order.PaymentStatus %></p>
                 <p class="card-text">Date:<%=  moment(order.OrderDate).format('lll') %></p>
-                <div class="d-flex justify-content-end">a
+                <div class="d-flex justify-content-end">
                   <% if (order.Status === 'Delivered') { %>
                     <a href="/order/orderdetails/<%= order._id %>" class="btn btn-primary me-2">View Details</a>
                     <button class="btn btn-danger me-2"  onclick="confirmReturn('<%= order._id %>')">Return</button>
@@ -113,7 +113,7 @@
           <p>No results found.</p>
         <% } %>
       </div>
-      
+
       </body>
       <script>
         // document.addEventListener('DOMContentLoaded', function () {
@@ -213,29 +213,67 @@
           })
         }
      
-      
-      function downloadInvoice(orderId){
-        document.getElementById('downloadButton').style.display ='none';
-        document.getElementById('loading-spinner').style.display = 'block';
-        $.ajax({
-          url:`/downloadInvoice/${orderId}`,
-          method:'POST',
-          data:{
-            orderId:orderId
-          },
-          success:(response)=>{
-            console.log("hai iam karthik");
-          document.getElementById('downloadButton').style.display = 'block';
-          document.getElementById('loading-spinner').style.display = 'none';
-          window.location.href = `/download/invoice/${orderId}`
-          },
-          error:(error) =>{
-          document.getElementById('downloadButton').style.display = 'block';
-          document.getElementById('loading-spinner').style.display = 'none';
-            console.log(error);
-          }
-        })
-      }
+        
+    function downloadInvoice(orderId) {
+    document.getElementById('downloadButton').style.display ='none';
+
+    let timerInterval;
+
+    // Show SweetAlert with a timer
+    Swal.fire({
+        title: "Processing...",
+        html: "Please wait...",
+        timer: 10000, // Set the timer to a reasonable value (in milliseconds)
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+            const timer = Swal.getPopup().querySelector("b");
+            timerInterval = setInterval(() => {
+                timer.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}`;
+            }, 1000);
+        },
+        willClose: () => {
+            clearInterval(timerInterval);
+        }
+    });
+
+    // Make Ajax call
+    $.ajax({
+        url: `/downloadInvoice/${orderId}`,
+        method: 'POST',
+        data: {
+            orderId: orderId
+        },
+        success: (response) => {
+            console.log("Ajax call success:", response);
+            // Close SweetAlert
+            Swal.fire({
+                icon: 'success',
+                title: 'Download Successful',
+                text: 'Your invoice has been downloaded successfully!',
+            });
+            // Redirect to download URL
+            window.location.href = `/download/invoice/${orderId}`;
+        },
+        error: (error) => {
+            console.error("Ajax call error:", error);
+            // Close SweetAlert
+            Swal.fire({
+                icon: 'error',
+                title: 'Download Failed',
+                text: 'Sorry, there was an error while downloading your invoice.',
+            });
+        },
+        complete: () => {
+            // Always close the loading overlay when the Ajax call is complete
+            Swal.close();
+            // Show the download button again
+            document.getElementById('downloadButton').style.display = 'block';
+        }
+    });
+}
+
     // })
        </script>
      

@@ -10,7 +10,7 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="/addAddress" method="post">
+                <form action="/addAddress" method="post" onsubmit="return validateForm()">
                     <div class="mb-3">
                         <label for="fullName" class="form-label">Full Name</label>
                         <input type="text" class="form-control" name="Name"  id="fullName" placeholder="Enter your full name" required>
@@ -35,6 +35,9 @@
                         <label for="mobileNumber" class="form-label">Mobile Number</label>
                         <input type="tel" class="form-control" id="mobileNumber" name="Mobile" placeholder="Enter your mobile number" required>
                       </div>
+                      <div class="error-message"
+                      style="display: none; font-weight: bold; color: #ff0019; padding: 10px; "
+                      id="errorMessage"></div>
                     <button type="submit" class="btn btn-primary"  >Submit</button>
                   </form>
             </div>
@@ -45,6 +48,7 @@
         </div>
       </div>
       
+
       <!-- edit address -->
      <!-- edit address -->
     <% user.Address.forEach(function(Address) { %>
@@ -56,7 +60,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
-                <form action="/editAddress/<%=Address._id %>" method="post">
+                <form action="/editAddress/<%=Address._id %>" method="post" >
                   <div class="mb-3">
                     <label for="fullName" class="form-label">Full Name</label>
                     <input type="text" class="form-control" name="Name" value="<%=Address.Name%>"  id="fullName<%=Address._id%>" placeholder="Enter your full name" required>
@@ -81,6 +85,9 @@
                     <label for="mobileNumber" class="form-label">Mobile Number</label>
                     <input type="tel" class="form-control" id="mobileNumber<%=Address._id%>" name="Mobile" value="<%= Address.Mobile%>" placeholder="Enter your mobile number" required>
                   </div>
+                  <div class="error-message"
+                      style="display: none; font-weight: bold; color: #ff0019; padding: 10px; "
+                      id="errorMessage"></div>
                   <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
               </div>
@@ -155,8 +162,57 @@
            </button>
     </div
 
-
+        
     <%- include('../user/partials/userfooter')%>
+    <script>
+     const  validateForm = (modalId) => {
+    // Get form inputs within the specific modal
+    var fullName = document.getElementById('fullName' + modalId).value;
+    var address = document.getElementById('address' + modalId).value;
+    var city = document.getElementById('city' + modalId).value;
+    var pincode = document.getElementById('pincode' + modalId).value;
+    var state = document.getElementById('state' + modalId).value;
+    var mobileNumber = document.getElementById('mobileNumber' + modalId).value;
+
+    // Validate each field
+    if (fullName === '' || address === '' || city === '' || pincode === '' || state === '' || mobileNumber === '') {
+        const errorMessage = document.getElementById('errorMessage' + modalId);
+        errorMessage.innerHTML = 'Please fill in all fields!';
+        errorMessage.style.display = 'block';
+        return false;
+    }
+
+    // Additional validation for fullName, address, city, and state
+    var nameRegex = /^[a-zA-Z]+$/;
+    if (!fullName.match(nameRegex) || !address.match(nameRegex) || !city.match(nameRegex) || !state.match(nameRegex)) {
+        const errorMessage = document.getElementById('errorMessage' + modalId);
+        errorMessage.innerHTML = 'Invalid characters in name, address, city, or state fields!';
+        errorMessage.style.display = 'block';
+        return false;
+    }
+
+    // Validate pincode
+    var pincodeRegex = /^[1-9]\d{5}$/;
+    if (!pincode.match(pincodeRegex)) {
+        const errorMessage = document.getElementById('errorMessage' + modalId);
+        errorMessage.innerHTML = 'Pincode is not valid!';
+        errorMessage.style.display = 'block';
+        return false;
+    }
+
+    // Validate mobile number
+    var mobileRegex = /^[1-9]\d{9}$/;
+    if (!mobileNumber.match(mobileRegex)) {
+        const errorMessage = document.getElementById('errorMessage' + modalId);
+        errorMessage.innerHTML = 'Mobile number is not valid!';
+        errorMessage.style.display = 'block';
+        return false;
+    }
+
+    return true;
+}
+
+    </script>
     <%- include('../user/layouts/footer') %>
     
 

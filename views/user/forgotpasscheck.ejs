@@ -52,14 +52,14 @@
 <div class="card">
     <h2>Password Reset</h2>
 
-    <form action="/forgotpasscheck" method="post">
+    <form action="/forgotpasscheck" method="post" onsubmit="return validatePassword()"> 
         <div class="form-group">
-            <input type="password" class="form-control" name="newpassword" placeholder="New Password" required="true" minlength="8" />
+            <input type="password" class="form-control" name="newpassword" placeholder="New Password" id="newpassword" required="true" />
         </div>
         <div class="form-group">
-            <input type="password" class="form-control" name="confirmpassword" placeholder="Confirm Password" required="true" minlength="8" />
+            <input type="password" class="form-control" name="confirmpassword" placeholder="Confirm Password" id="confirmpassword" required="true" />
         </div>
-
+        <p id="error-message" style="color: #bf1717; text-align: center;"></p>
         <button type="submit" class="btn btn-primary submit-btn">Reset Password</button>
     </form>
 </div>
@@ -68,6 +68,57 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    function validatePassword() {
+        var newPassword = document.getElementById('newpassword').value;
+        var confirmPassword = document.getElementById('confirmpassword').value;
+
+        // Check if passwords are empty
+        if (!newPassword || !confirmPassword) {
+            const errorMessage = document.getElementById('error-message')
+            errorMessage.innerHTML = 'Please enter both new and confirm passwords.';
+            setTimeout(() => {
+                errorMessage.innerHTML = ""
+            }, 2000);
+            return false;
+        }
+
+        // Check if passwords are at least 8 characters long
+        if (newPassword.length < 8 || confirmPassword.length < 8) {
+            const errorMessage = document.getElementById('error-message')
+            errorMessage.innerHTML = 'Passwords must be at least 8 characters long.';
+            setTimeout(() => {
+                errorMessage.innerHTML = ""
+            }, 2000);
+            return false;
+        }
+
+        // Check if passwords match
+        if (newPassword !== confirmPassword) {
+            const errorMessage = document.getElementById('error-message')
+            errorMessage.innerHTML = 'Passwords do not match.';
+            setTimeout(() => {
+                errorMessage.innerHTML = ""
+            }, 2000);
+            return false;
+        }
+        
+
+        // Check if passwords meet additional criteria (numbers, special characters, etc.)
+        var passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            const errorMessage = document.getElementById('error-message')
+            errorMessage.innerHTML = 'Password must contain at least one letter, one number, and one special character.';
+            setTimeout(() => {
+                errorMessage.innerHTML = ""
+            }, 2000);
+            return false;
+        }
+
+        // If all validations pass, you can proceed with submitting the form
+        return true;
+    }
+</script>
 
 </body>
 </html>

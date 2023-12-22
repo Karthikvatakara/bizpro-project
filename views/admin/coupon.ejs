@@ -64,32 +64,44 @@
                 <form action="/admin/addCoupon" method="post" id="addCouponForm">
                     <div class="form-group">
                         <label for="couponName">Coupon Name</label>
-                        <input type="text" class="form-control" id="couponName" name="couponName" placeholder="Enter coupon name" required>
+                        <input type="text" class="form-control" id="couponName" name="couponName" placeholder="Enter coupon name" >
                     </div>
+                    <p id="couponName-error-msg" style="color: #bf1717; text-align: center;"></p>
                     <div class="form-group">
                         <label for="couponCode">Coupon Code</label>
-                        <input type="text" class="form-control" id="couponCode" name="couponcode" placeholder="Enter coupon code" required>
+                        <input type="text" class="form-control" id="couponCode" name="couponcode" placeholder="Enter coupon code" >
                     </div>
+                    <p id="couponCode-error-msg" style="color: #bf1717; text-align: center;"></p>
+
                     <div class="form-group">
                         <label for="startDate">Start Date</label>
-                        <input type="date" class="form-control" id="startDate" name="startDate" required>
+                        <input type="date" class="form-control" id="startDate" name="startDate" >
                     </div>
+                    <p id="startDate-error-msg" style="color: #bf1717; text-align: center;"></p>
+
                     <div class="form-group">
                         <label for="expiryDate">Expiry Date</label>
-                        <input type="date" class="form-control" id="expiryDate" name="expiryDate" required>
+                        <input type="date" class="form-control" id="expiryDate" name="expiryDate" >
                     </div>
+                    <p id="expiryDate" style="color: #bf1717; text-align: center;"></p>
                     <div class="form-group">
                         <label for="discountAmount">Discount Amount</label>
-                        <input type="number" class="form-control" id="discountAmount" name="discountAmount" placeholder="Enter discount amount" required min="1">
+                        <input type="number" class="form-control" id="discountAmount" name="discountAmount" placeholder="Enter discount amount" >
                     </div>
+                    <p id="discountAmount-error-msg" style="color: #bf1717; text-align: center;"></p>
+
                     <div class="form-group">
                         <label for="usageLimit">Usage Limit</label>
-                        <input type="number" class="form-control" id="usageLimit" name="usageLimit" placeholder="Enter usage limit" required min="0">
+                        <input type="number" class="form-control" id="usageLimit" name="usageLimit" placeholder="Enter usage limit"  >
                     </div>
+                    <p id="usageLimit-error-msg" style="color: #bf1717; text-align: center;"></p>
+
                     <div class="form-group">
                         <label for="minimumPurchaseAmount">Minimum Purchase Amount</label>
-                        <input type="number" class="form-control" id="minimumPurchaseAmount" name="minimumPurchaseAmount" placeholder="Enter minimum purchase amount" required min="0">
+                        <input type="number" class="form-control" id="minimumPurchaseAmount" name="minimumPurchaseAmount" placeholder="Enter minimum purchase amount" required >
                     </div>
+                    <p id="minimumPurchase-error-msg" style="color: #bf1717; text-align: center;"></p>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -113,16 +125,6 @@
         document.getElementById('startDate').min = formatDate(today);
         document.getElementById('expiryDate').min = formatDate(tomorrow);
 
-        // Add event listener to the Start Date input
-        document.getElementById('startDate').addEventListener('input', function () {
-            // Update the minimum value for the Expiry Date input based on the selected start date
-            const selectedStartDate = new Date(this.value);
-            const minExpiryDate = new Date(selectedStartDate);
-            minExpiryDate.setDate(selectedStartDate.getDate() + 1);
-
-            document.getElementById('expiryDate').min = formatDate(minExpiryDate);
-        });
-
         // Add event listener to the form submit event
         document.getElementById('addCouponForm').addEventListener('submit', function (event) {
             // Perform discount amount validation
@@ -130,21 +132,128 @@
             const discountAmount = parseFloat(discountAmountInput.value);
             const minimumPurchaseAmountInput = document.getElementById('minimumPurchaseAmount');
             const minimumPurchaseAmount = parseFloat(minimumPurchaseAmountInput.value);
-            
-            // Check if discount amount is less than 1 rupee
-            if (discountAmount < 1) {
-                alert('Minimum discount amount is 1 rupee.');
+            const usageLimitInput = document.getElementById('usageLimit');
+            const usageLimit = parseInt(usageLimitInput.value, 10);
+            const couponCodeInput = document.getElementById('couponCode');
+            const couponNameInput = document.getElementById('couponName');
+            const startDateInput = document.getElementById('startDate');
+            const expiryDateInput = document.getElementById('expiryDate');
+
+            // Check if any field is empty
+            if (!couponNameInput.value.trim()) {
+                const errorMessage = document.getElementById('couponName-error-msg');
+                errorMessage.innerHTML = 'Coupon name is required.';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);
                 event.preventDefault();
                 return;
             }
 
-            // Check if discount amount is greater than or equal to 10% of the minimum purchase amount
-            if (discountAmount >= 0.1 * minimumPurchaseAmount) {
-                alert('Maximum discount amount should be less than 10% of the minimum purchase amount.');
+            if (!couponCodeInput.value.trim()) {
+                const errorMessage = document.getElementById('couponCode-error-msg');
+                errorMessage.innerHTML = 'Coupon code is required.';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);
                 event.preventDefault();
+                return;
+            }
+
+            if (!startDateInput.value) {
+                const errorMessage = document.getElementById('startDate-error-msg');
+                errorMessage.innerHTML = 'select a start date.';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);
+                event.preventDefault();
+                return;
+            }
+
+            if (!expiryDateInput.value) {
+                const errorMessage = document.getElementById('expiryDate-error-msg');
+                errorMessage.innerHTML = "Expiry date is required.";
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);
+                event.preventDefault();
+                return;
+            }
+
+            if (!discountAmountInput.value) {
+                const errorMessage = document.getElementById('discountAmount-error-msg');
+                errorMessage.innerHTML = "Discouont amount is required";
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);
+                event.preventDefault();
+                return;
+            }
+
+            if (!minimumPurchaseAmountInput.value) {
+                const errorMessage = document.getElementById('minimumPurchase-error-msg');
+                errorMessage.innerHTML = 'Minimum purchase amount is required.';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);;
+                event.preventDefault();
+                return;
+            }
+
+            if (!usageLimitInput.value) {
+                const errorMessage = document.getElementById('usageLimit-error-msg');
+                errorMessage.innerHTML = 'usagelimit is required.';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);;
+                event.preventDefault();
+                return;
+            }
+
+            // Check if coupon code and coupon name are at least 4 characters long
+            if (couponCodeInput.value.trim().length < 4){  
+                const errorMessage = document.getElementById('couponName-error-msg');
+                errorMessage.innerHTML = 'coupon name must be 4 letters';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);;
+                event.preventDefault();
+                return;
+            }
+
+            if(couponNameInput.value.trim().length < 4) {
+                const errorMessage = document.getElementById('couponCode-error-msg');
+                errorMessage.innerHTML = 'coupon code must be 4 letters';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);;
+                event.preventDefault();
+                return;
+            }
+
+            // Check if discount amount is less than 1 rupee or greater than or equal to 10% of the minimum purchase amount
+            if (discountAmount <= 0 || discountAmount >= 0.1 * minimumPurchaseAmount) {
+                const errorMessage = document.getElementById('discountAmount-error-msg');
+                errorMessage.innerHTML = 'Discount amount must be greater than 0 and less than 10% of the minimum purchase amount.';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);;
+                event.preventDefault();
+                return;
+            }
+
+            // Check if usage limit is between 1 and 15
+            if (usageLimit <= 0 || usageLimit > 15) {
+                const errorMessage = document.getElementById('usageLimit-error-msg');
+                errorMessage.innerHTML = 'Usage limit must be between 1 and 15.';
+                setTimeout(() => {
+                    errorMessage.innerHTML = "";
+                }, 1000);;
+                event.preventDefault();
+                return;
             }
         });
-        this.reset()
+
         // Function to format the date as 'YYYY-MM-DD' (required format for input type="date")
         function formatDate(date) {
             const year = date.getFullYear();
@@ -154,4 +263,7 @@
         }
     });
 </script>
+
+
+
 <%- include('../admin/layouts/footer') %>

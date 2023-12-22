@@ -55,7 +55,7 @@ module.exports = {
             }
             console.log("otp sent");
           })
-
+          req.flash("success","enter the otp!")
           res.redirect('/emailverification')
     }catch(error) {
         console.log(error);

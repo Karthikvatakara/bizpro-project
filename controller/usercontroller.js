@@ -45,7 +45,7 @@ const viewproduct = async (req, res) => {
 //userlogin-get
 const login = async (req, res) => {
   if (req.session.user) {
-    res.redirect("/home");
+    res.redirect("/");
   } else {
     res.render("user/login", { messages: req.flash() });
   }
@@ -64,7 +64,7 @@ const postlogin = async (req, res) => {
           req.session.userAuth = true;
           req.session.user = user;
           console.log("test");
-          res.redirect("/home");
+          res.redirect("/");
         } else {
           req.flash("error", "the password or email doesnot match");
           res.redirect("/login");
@@ -96,9 +96,6 @@ const getreferelsignup = async(req,res) =>{
 ///post signup
 const logged = async (req, res) => {
   try {
-    
-    
-
     password = req.body.password;
     const saltrounds = 10;
     const salt = await bcrypt.genSalt(saltrounds);
@@ -116,7 +113,6 @@ const logged = async (req, res) => {
 
     if (validEmail) {
       if (req.body.password === req.body.confirmpassword) {
-        // if(req.body.password == req.body.confirmpassword)
         const specialCharRegex = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\]/;
         const numberRegex = /\d/;
         const containsSpecialChar = specialCharRegex.test(password);
@@ -137,7 +133,6 @@ const logged = async (req, res) => {
                 req.flash("error", "email already exist");
                 console.log("email already exist" + error);
                 res.redirect("/signup");
-                // res.send("email already exist");
               } else {
                 const otpToBeSent = otpfunctions.generateOTP();
                 const result = otpfunctions.sendOTP(
@@ -146,7 +141,6 @@ const logged = async (req, res) => {
                   email,
                   otpToBeSent
                 );
-                //    res.send("new page")
               }
             } else {
               req.flash("error", "password must have 8 letters");
@@ -174,38 +168,10 @@ const logged = async (req, res) => {
   }
 };
 
-//     if(req.body.password == req.body.confirmpassword) {
-//         if(validEmail){
-//             req.session.user = req.body
-//             req.session.email = req.body.email
-//             console.log(req.session.user);
-
-//             const existinguser = await usermodel.findOne({email:req.body.email})
-//             if(existinguser) {
-//                 req.flash('error',"email already exist")
-//                 console.log("email already exist" +error);
-//                 res.redirect('/signup')
-//                 // res.send("email already exist")
-//             } else{
-//                const otpToBeSent = otpfunctions.generateOTP()
-//                const result = otpfunctions.sendOTP(req,res,email,otpToBeSent)
-//             //    res.send("new page")
-//             }
-//         } else{
-//             console.log("error is here");
-//             req.flash('error',"invalid emailaddress")
-//             res.redirect('/signup')
-//         }
-//     } else {
-//         console.log("error is here 2");
-//         req.flash('error',"password doesnt match")
-//         res.redirect('/signup')
-//         // res.send("password doesnt match")
-//     }
-
 const getemailverification = async (req, res) => {
   res.render("user/emailverification", {
     messages: req.flash(),
+    message:req.flash(),
     user: req.session.user,
   });
 };
@@ -218,21 +184,15 @@ const otpAuth = async (req, res, next) => {
     const matchedotprecord = await OTP.findOne({
       email: req.session.user.email,
     });
-
+    const expiresAt  = matchedotprecord?.expiresAt;
     if (!matchedotprecord) {
-      throw new Error("no otp records found for given mail");
+      req.flash("error","otp expired")
+      res.redirect('/emailverification')
     }
+   
 
-    const { expiresAt } = matchedotprecord;
-
-    //checking for expired otps
-
-    if (expiresAt < Date.now()) {
-      await OTP.deleteOne({ email });
-      throw new Error("the OTP code has expired please request a new one");
-    }
-
-    const dbOTP = matchedotprecord.otp;
+    const dbOTP = matchedotprecord?.otp;
+    if(dbOTP){
     if (otp == dbOTP) {
       req.session.otpvalid = true;
       console.log("dbotp");
@@ -243,7 +203,7 @@ const otpAuth = async (req, res, next) => {
       req.flash("error", "OTP IS INVALID");
       res.redirect("/emailverification");
     }
-  } catch (error) {
+  }} catch (error) {
     console.log(error);
     res.redirect("/signup");
   }
@@ -251,21 +211,24 @@ const otpAuth = async (req, res, next) => {
 
 const postemailverification = async (req, res) => {
   try {
-    console.log("reached postemail");
     const user = await usermodel.create(req.session.user);
     const userUuid = uuidv4();
     const uuid = await usermodel.findOneAndUpdate({_id:user._id},{$set:{userUuid:userUuid}},{new:true})
-    console.log(uuid,"uuid of the user");
-    // console.log(user);
     req.session.user = user;
     req.session.userAuth = true;
     
+    const isValidUUID = (uuid) => {
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      return uuidRegex.test(uuid);
+    }
+
     if(req.session.url && req.session.url.startsWith('/signup/')) {
-      console.log(req.session.url,"karthik brocamp");
-      const id = req.session.url.split('/').pop();
-      if(mongoose.Types.ObjectId.isValid(id)) {
-        const referenceUser = await usermodel.findOne({_id:id});
+      const referalUuid = req.session.url.split('/').pop();
+      console.log("hi iam here")
+      if(isValidUUID(referalUuid)) {
+        const referenceUser = await usermodel.findOne({userUuid:referalUuid});
         if(referenceUser){
+          console.log("reached here")
           const increment = 100;
           // await usermodel.findOneAndUpdate({_id:id},{$inc:{WalletAmount:100}})
           const walletTransaction = {
@@ -278,7 +241,7 @@ const postemailverification = async (req, res) => {
         }
         console.log(walletTransaction,"wallet transactions");
         console.log("hai reached");
-        const user = await usermodel.findByIdAndUpdate(id,{$inc:{WalletAmount:increment},$push:{walletTransactions:walletTransaction}},{new:true})
+        const user = await usermodel.findOneAndUpdate({userUuid:referalUuid},{$inc:{WalletAmount:increment},$push:{walletTransactions:walletTransaction}},{new:true})
 
 
 
@@ -292,7 +255,7 @@ const postemailverification = async (req, res) => {
   
 
     if (user) {
-      res.redirect("/home");
+      res.redirect("/");
     }
   } catch (error) {
     res.redirect("/signup");
@@ -307,6 +270,7 @@ const resendotp = async (req, res) => {
     const otpToBeSent = otpfunctions.generateOTP();
     console.log("test1");
     const result = otpfunctions.sendOTP(req, res, email, otpToBeSent);
+    
   } catch (error) {
     console.log(error);
     req.flash("error", "error sending resend otp");
@@ -327,14 +291,15 @@ const postforgotpassword = async (req, res) => {
     email = req.body.email;
 
     const matchedemail = await usermodel.find({ email: req.body.email });
-    if (matchedemail) {
+    if (matchedemail.length) {
+      console.log(matchedemail,"kkkk");
       req.session.email = email;
       // req.session.user = matchedemail
       const otpToBeSent = otpfunctions.generateOTP();
       const result = otpfunctions.forgotOTP(req, res, email, otpToBeSent);
     } else {
       req.flash("error", "no user exist");
-      res.redirect("user/forgotpasscheck");
+      res.redirect("/forgotpassword");
     }
   } catch (error) {
     console.log(error);
@@ -343,7 +308,7 @@ const postforgotpassword = async (req, res) => {
 
 const getforgototp = async (req, res) => {
   try {
-    res.render("user/forgototp");
+    res.render("user/forgototp",{messages:req.flash()});
   } catch (error) {
     req.flash("error", "not getting the page");
     res.redirect("/forgotpassword");
@@ -375,6 +340,7 @@ const postforgototp = async (req, res) => {
 
 const getforgotpasscheck = async (req, res) => {
   try {
+
     res.render("user/forgotpasscheck", { email: req.body.email });
   } catch (error) {
     console.log(error);
@@ -401,7 +367,7 @@ const postforgotpasscheck = async (req, res) => {
       console.log(user, "here is the userr");
       req.session.user = user;
       req.session.userAuth = true;
-      res.redirect("/home");
+      res.redirect("/");
     } else {
       req.flash("error", "the password doesnot match");
       console.log("password doesnot match");
@@ -414,7 +380,6 @@ const postforgotpasscheck = async (req, res) => {
 
 const getproduct = async (req, res) => {
   try {
-    // console.log(req.params.id);
     let neworder = false;
     const product = await productModel.findOne({ _id: req.params.id });
     if (!product) {
@@ -495,10 +460,10 @@ const getusershop = async (req, res) => {
     const perPage = 10; // Number of items per page
     const skip = (page - 1) * perPage;
     console.log(req.url, "inside getshop", req.query);
-
+    // const currentPage = req.query.page || '';
     // const user = await usermodel.find().skip(skip).limit(perPage);
-    const totalCount = await productModel.countDocuments();
-    if (req.url === "/usershop" || req.query?.sort) {
+    const totalCount = await productModel.countDocuments({Display:"Active"});
+    if (req.url === "/usershop" || req.query?.sort || req.url === `/usershop?page=${req?.query?.page}`) {
       const categories = await categoryModel.find();
       const brands = await brandModel.find();
 
@@ -552,7 +517,7 @@ const getusershop = async (req, res) => {
         totalPages: Math.ceil(totalCount / perPage),
     
       });
-    } else if (req.url === `/usershop/category/${id}`) {
+    } else if (req.url === `/usershop/category/${id}` || req.url == `/usershop/category?page=${req?.query?.page}`) {
       console.log("testing");
       const categories = await categoryModel.find();
       const brands = await brandModel.find();
@@ -571,13 +536,33 @@ const getusershop = async (req, res) => {
         totalCount,
         totalPages: Math.ceil(totalCount / perPage),
       });
-    } else if (req.url == `/usershop/brand/${id}`) {
+    } else if (req.url == `/usershop/brand/${id}` || req.url == `/usershop/brand?page=${req?.query?.page}`) {
       const categories = await categoryModel.find();
       const brands = await brandModel.find();
       const products = await productModel.find({
         BrandName: req.params.id,
         Display: "Active",
       });
+      res.render("user/shop", {
+        user,
+        categories,
+        brands,
+        products,
+        currentPage: page,
+        perPage,
+        totalCount,
+        totalPages: Math.ceil(totalCount / perPage),
+      });
+    }else if(req.query?.search || `req.query?.search?page=${req?.query?.page}`){
+      console.log(req.query.search)
+      const categories = await categoryModel.find();
+      const brands = await brandModel.find();
+      // db.collectionName.find({ name: { $regex: /afe/ } })
+      const products = await productModel.find({
+        ProductName: { $regex: new RegExp(req.query.search, 'i') },
+        Display: "Active"
+      });
+
       res.render("user/shop", {
         user,
         categories,
@@ -598,7 +583,7 @@ const logout = async (req, res) => {
   try {
     req.session.userAuth = false;
     req.session.user = null;
-    res.redirect("/home");
+    res.redirect("/");
   } catch (error) {
     console.log(error);
   }
@@ -749,54 +734,40 @@ const getuserCoupons = async(req,res) =>{
 }
 
 
-const navbarsearch = async (req, res) => {
-  try {
-    const { search } = req.body;
-    const regex = new RegExp(search, 'i');
-    const productDetails = await productModel.find({ tags: regex, Display: 'Active' });
 
-    if (productDetails.length === 0) {
-      res.render('user/noresults'); // Create a 'noresults' view for indicating no search results
-      return;
-    }
-
-    res.render('user/usershop', { productDetails });
-  } catch (error) {
-    console.log(error);
-    res.render('error', { error });
-  }
-};
 
 const getwishlist = async(req,res)=>{
   try{
     const userId = req.session.user._id;
-    const date = new Date();
-    const user = await usermodel.findOne({_id:userId}).populate('wishlist.ProductId')
-    res.render('user/wishlist',{user,date})
+    // const date = new Date();
+    const user = await usermodel.find({_id:userId}).populate('wishlist.ProductId');
+    console.log("wishlist==",user[0]);
+    res.render('user/wishlist',{user})
   }catch(error){
     console.log(error);
   }
 }
 
-// const addToWishlist = async(req,res) =>{
-//   try{
-//     console.log("hai nari anirudh")
-//     const productId = req.params.id;
-//     const userId = req.session.user._id;
+const addToWishlist = async(req,res) =>{
+  try{
+  
+    const productId = req.params.id;
+    const userId = req.session.user._id;
 
-//     const wishlistContains = await usermodel.findOne({_id:userId,'wishlist.ProductId':productId});
+    const wishlistContains = await usermodel.findOne({_id:userId,'wishlist.ProductId':productId});
     
-//     console.log(wishlistContains);
-//     if(wishlistContains){
-//       res.json({ success: false });
-//     }else{
-//       const wishlist = await usermodel.findOneAndUpdate({_id:userId},{$push:{wishlist:{productId:productId}}});
-//       res.json({ success: true});    
-//     }
-//   }catch(error){
-//     console.log(error);
-//   }
-// }
+    console.log(wishlistContains);
+    if(wishlistContains){
+      res.json({ success: false });
+    }else{
+      const wishlist = await usermodel.findOneAndUpdate({_id:userId},{$push:{wishlist:{ProductId:productId}}});
+      console.log(wishlist)
+      res.json({ success: true});    
+    }
+  }catch(error){
+    console.log(error);
+  }
+}
 
 module.exports = {
   viewproduct,
@@ -827,7 +798,6 @@ module.exports = {
   postEditProfile,
   getuserCoupons,
   getreferelsignup,
-  navbarsearch,
   getwishlist,
-  // addToWishlist
+  addToWishlist
 };

@@ -14,7 +14,7 @@ module.exports ={
     
     const pdfOptions = {  
         format: 'Letter',
-        orientation: 'portrait',
+        orientation: 'landscape',
     };
     
     pdf.create(html, pdfOptions).toFile(`public/SRpdf/sales-report-${startDate}-${endDate}.pdf`, (err, response) => {

@@ -8,7 +8,7 @@ const usercontroller = require('../controller/usercontroller')
 const cart = require('../model/cartmodel')
 const couponcontroller = require('../controller/couponcontroller')
 
-router.get('/home',usercontroller.viewproduct)
+router.get('/',usercontroller.viewproduct)
 
 router.get('/login',userAuth.authmiddleware,usercontroller.login)
 router.post('/login',usercontroller.postlogin)
@@ -22,21 +22,22 @@ router.post('/signup/:id',usercontroller.logged)
 router.get('/emailverification',userAuth.authmiddleware,usercontroller.getemailverification)
 router.post('/emailverification',usercontroller.otpAuth,usercontroller.postemailverification)
 
-router.get('/resendotp',userAuth.userToken,usercontroller.resendotp)
+router.get('/resendotp',userAuth.authmiddleware,usercontroller.resendotp)
 
 
 router.get('/forgotpassword',userAuth.authmiddleware,usercontroller.getforgotpassword)
-router.post('/forgotpassword',userAuth.userToken,usercontroller.postforgotpassword)
+router.post('/forgotpassword',userAuth.authmiddleware,usercontroller.postforgotpassword)
 
 router.get('/forgototp',userAuth.authmiddleware,usercontroller.getforgototp)
-router.post('/forgototp',userAuth.userToken,usercontroller.postforgototp)
+router.post('/forgototp',usercontroller.postforgototp)
 
 router.get('/forgotpasscheck',userAuth.authmiddleware,usercontroller.getforgotpasscheck)
-router.post('/forgotpasscheck',userAuth.userToken,usercontroller.postforgotpasscheck)
+router.post('/forgotpasscheck',usercontroller.postforgotpasscheck)
 
 router.get('/usershop',userAuth.userexist,usercontroller.getusershop)
 router.get('/usershop/category/:id',userAuth.userexist,usercontroller.getusershop)
 router.get('/usershop/brand/:id',userAuth.userexist,usercontroller.getusershop)
+router.get('/home/search',usercontroller.getusershop)
 
 
 router.get('/logout',usercontroller.logout)
@@ -79,6 +80,7 @@ router.get('/trackorder',userAuth.userToken,ordercontroller.getUserTrackOrderDet
 router.post('/order/cancel/:id',userAuth.userToken,ordercontroller.getuserordercancel)
 
 router.post('/verify-payment',userAuth.userToken,cartcontroller.postverifypayment)
+router.post('/walletOnlineVerifyPayment',userAuth.userToken,cartcontroller.postWalletOnlineVerifyPayment)
 
 router.post('/order/return/:id',userAuth.userToken,ordercontroller.postorderreturn)
 router.post('/order/cancelReturnRequest/:id',userAuth.userToken,ordercontroller.postCancelReturnRequest)
@@ -99,11 +101,11 @@ router.get('/coupons-and-offers',userAuth.userToken,usercontroller.getuserCoupon
 router.post('/validateCoupon',userAuth.userToken,couponcontroller.postValidateCoupon)
 router.post('/couponremoval',userAuth.userToken,couponcontroller.postcouponremoval)
 
-router.post('/home/search',usercontroller.navbarsearch)
 
 router.post('/walletcheckout',userAuth.userToken,cartcontroller.postWalletCheckout)
 
-// router.get('/wishlist',userAuth.userToken,usercontroller.getwishlist)
-// router.get('/addToWishlist/:id',userAuth.userToken,usercontroller.addToWishlist)
+router.get('/wishlist',userAuth.userToken,usercontroller.getwishlist)
+router.get('/addToWishlist/:id',userAuth.userToken,usercontroller.addToWishlist)
 // router.get('/removeFromWishlist/:_id',userAuth.userToken,usercontroller.removeFromWishlist)
+
 module.exports = router

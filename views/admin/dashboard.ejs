@@ -316,7 +316,7 @@ async function fetchSalesData(timeInterval) {
         const paymentCell = row.insertCell(3);
         const statusCell = row.insertCell(4);
 
-        orderIdCell.textContent = `ORD-${order._id}`;
+        orderIdCell.textContent = `ORD-${order.orderUuid}`;
         dateCell.textContent = order.OrderDate; 
         totalCell.textContent = order.TotalPrice; 
         paymentCell.textContent = order.PaymentMethod; 
@@ -333,11 +333,7 @@ async function fetchSalesData(timeInterval) {
         const statusCell = row.insertCell(3);
         const salesCell = row.insertCell(4);
 
-        // const imgElement = document.createElement("img");
-        // const imageUrl = "/uploads/" + seller.productDetails.images[0];
-        // imgElement.src = imageUrl;
-        // imgElement.style.maxWidth = "50px";
-        // productImageCell.appendChild(imgElement);
+        
 
         productCell.textContent = seller.productDetails._id; 
         productNameCell.textContent = seller.productDetails.ProductName; 

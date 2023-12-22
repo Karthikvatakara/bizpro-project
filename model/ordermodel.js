@@ -31,7 +31,8 @@ const shipAddressSchema = new Schema({
 const orderSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref:'user'
     },
     Status: {
         type: String,
@@ -102,7 +103,8 @@ const orderSchema = new Schema({
             type:Number,
             default:0,
         }
-    }
+    },
+
 });
 
 const Order = model('Order', orderSchema); 

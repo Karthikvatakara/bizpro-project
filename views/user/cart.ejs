@@ -101,11 +101,12 @@
                       class="btn btn-light border px-2 icon-hover-primary"
                       ><i class="fas fa-heart fa-lg px-1 text-secondary"></i
                     ></a>
-                    <a
-                      href="/removefromcart/<%=cartItem.productId._id%>"
-                      class="btn btn-light border text-danger icon-hover-danger" onclick="confirmRemoval(event,'<%= cartItem.productId._id %>')"
+                    <button
+                    type="button"
+                      onclick="confirmRemoval('<%= cartItem.productId._id%>')"
+                      class="btn btn-light border text-danger icon-hover-danger"
                     >
-                      Remove</a
+                      Remove</button
                     >
                     <!--  -->
                     <div>
@@ -134,14 +135,14 @@
           </div>
         </div>
      
-      <div class="col-md-3 mt-5">
+      <div class="col-md-3 mt-5" >
         <div class="card mb-3 border shadow-0">
           <div class="card-body">
               <div class="form-group">
                 <label class="form-label">Have coupon?</label>
                 <div id="flashMessage" class="alert alert-danger" style="display: none;"></div>
                 <div id="successCoupon" class="text-success" style="display: none;"></div>
-                <div class="input-group">
+                <div  id="couponAreaContainer" class="input-group">
                   <% if(cart?.coupon){ %>
                     <input
                       type="text"
@@ -158,9 +159,11 @@
                       placeholder="Coupon code"
                     />    
                     <%}%>
-
-                   
-                        <button class="btn btn-light border" type="button" id="applyCouponBtn" >Apply</button>
+                    <% if(cart?.coupon){%>
+                      <button class="btn btn-light border" type="button" id="removeCouponBtn" >Remove</button>
+                    <% }else{ %>
+                      <button class="btn btn-light border" type="button" id="applyCouponBtn" >Apply</button>
+                    <% } %>
                      
                  
                 </div>
@@ -168,7 +171,7 @@
           </div>
         </div>
 
-        <div class="card shadow-0 border">
+        <div id="priceContainer" class="card shadow-0 border">
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <p class="mb-2">Total price:</p>
@@ -177,7 +180,7 @@
             <div class="d-flex justify-content-between">
               <p class="mb-2">Discount:</p>
               <% if(cart?.coupon){%>
-                <input type="number" class="border-none" id="discountAmountcell" value="<%= cart.coupon.discountAmount%>" readonly style="width: 85px;border: 0; ">
+                <input type="number" class="text-end" id="discountAmountcell" value="<%= cart.coupon.discountAmount%>" readonly style="width: 85px;border: 0; ">
               <% }else{%>
                 <input type="number" class="text-end" id="discountAmountcell" value="0.00" readonly style="width: 85px;border: 0; ">
               <%}%>
@@ -198,7 +201,11 @@
             </div>
 
             <div class="mt-3">
-              <button type="submit" class="btn btn-success w-100 shadow-0 mb-2">
+              <%if(cart && cart.products && cart.products.length > 0) { %> 
+                <button type="submit" class="btn btn-success w-100 shadow-0 mb-2">
+                  <%}else{%>
+                    <button type="submit" disabled class="btn btn-success w-100 shadow-0 mb-2">
+                  <%}%>
 
                   Make Purchase
               </button>
@@ -244,9 +251,13 @@
 <%- include('../user/partials/userfooter') %>
 <!-- Footer -->
 
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
+  const couponAreaContainer = $('#couponAreaContainer');
+  const priceContainer = $('#priceContainer')
   const applyCouponBtn = document.getElementById("applyCouponBtn");
   if(applyCouponBtn){
     applyCouponBtn.addEventListener("click", function(event) {
@@ -256,6 +267,13 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   
+  const removeCouponBtn = document.getElementById("removeCouponBtn");
+  if(removeCouponBtn){
+    removeCouponBtn.addEventListener("click", function(event) {
+    removeCoupon();
+    event.preventDefault();
+    });
+  }
 
     const decreaseButtons = document.querySelectorAll(".decrease-quantity");
     const increaseButtons = document.querySelectorAll(".increase-quantity");
@@ -280,22 +298,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
         totalAmount += productAmount;
       })
-      console.log(totalAmount,"totalamount displayed");
+      
       const minAmount = document.getElementById('minAmount').value
      
-      console.log(minAmount,"minimum amounttttt");
+      
             if(minAmount!==""){
-              console.log(minAmount,"minimum amount new");
-              console.log(totalAmount,"total amnt");
             validateCouponAndUpdateTotal(totalAmount);
             }else{
-              console.log(couponValue.value,'coupon valuee');
               if(couponValue.value){
               const DiscountAmount = document.getElementById('discountAmountcell')
               const discountAmount = parseFloat(DiscountAmount.textContent)
-              console.log(discountAmount,"intervvvv");
               const totalPrice = totalAmount-discountAmount
-              console.log(totalPrice,"jabir");
               totalAmountCell.value =parseInt(totalPrice);
               const subTotal = document.getElementById("sub-total");
               subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
@@ -306,16 +319,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
                 totalAmountCell.value = totalAmount.toFixed(2)
               }
-              // const DiscountAmount = document.getElementById('discountAmountcell')
-              // const discountAmount = parseFloat(DiscountAmount.textContent)
-              // console.log(discountAmount,"intervvvv");
-              // const totalPrice = totalAmount-discountAmount
-              // console.log(totalPrice,"jabir");
-              // totalAmountCell.value =parseInt(totalPrice);
-              // const hiddenTotalAmount = document.getElementById('hiddenTotalAmount');
+             
             }
-
-      // hiddenTotalAmount.value = totalAmount.toFixed(2);  
     }
 
 
@@ -332,7 +337,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Received new quantity from server:", data.newQuantity);
 
           const quantityInput = document.getElementById(`count_${productId}`);
           const productAmount = document.getElementById(
@@ -345,7 +349,6 @@ document.addEventListener("DOMContentLoaded", function() {
             productAmount.textContent = existingValue * data.newQuantity;
 
             // Calculate and update the total amount
-            console.log("heree");
             updateTotalAmount();
            
           }
@@ -362,26 +365,19 @@ document.addEventListener("DOMContentLoaded", function() {
       try{ 
         const minAmount =document.getElementById('minAmount').value
         console.log(minAmount,"karthik");
-        // const totalAmountValue = document.getElementById('totalAmountCell').value
-        // const totalAmount = parseFloat( totalAmountValue.replace(/[^0-9.]/g, ''))
-
-        console.log(totalAmount,"total amount consolled");
-        console.log(minAmount,'minimum amouont');
-        if(totalAmount < minAmount){
       
-          const swalResult = await Swal.fire({
-           icon: 'error',
-           title: 'Your coupon is lost',
-           text: `The minimum amount for your coupon is ${minAmount} rupees.`,
-           showConfirmButton: false,
-           toast: true,
-           position: 'center', // You can adjust the position
-          timer: 2000, // Set the timer for 2000 milliseconds (2 seconds)
-          timerProgressBar: true, // Show a progress bar for the timer
+        if(totalAmount < minAmount){
+          Swal.fire({
+          icon: "error",
+          title: 'Your coupon is lost',
+          text: `The minimum amount for your coupon is ${minAmount} rupees.`,
+          timer:2000,
           });
 
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         
-
         const couponField = document.getElementById('couponCodeInput')
         let couponcode = couponField.value
         $.ajax({
@@ -411,27 +407,18 @@ document.addEventListener("DOMContentLoaded", function() {
         },
         error: function (error) {
         console.error('Error sending server request:', error);
-        // Handle errors if needed
        },
         });
         }else{
-          console.log("reached in else condition");
           const DiscountAmount = document.getElementById('discountAmountcell')
           const discountAmount = parseFloat(DiscountAmount.value)
-          console.log(discountAmount,"discount amount in validateCouponAndUpdateTotal");
           const subTotal = document.getElementById("sub-total");
           subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
           const subAmount = parseFloat(subTotal.textContent.replace(/[^0-9.]/g, ''))
-          console.log(subAmount,"subtotal value");
           const totalAmountCell = document.getElementById("totalAmountCell");
-          console.log(subAmount,"it is subtotal");
-          console.log(parseFloat(DiscountAmount.value),"it is discountamount");
-          console.log(subAmount-DiscountAmount.value)
           totalAmountCell.value = (subAmount - DiscountAmount.value).toFixed(2)
 
- 
-          
-        }
+          }
       }catch(error){
         console.log(error);
       }
@@ -444,8 +431,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const quantityInput = document.getElementById(`count_${productId}`);
         const quantity = parseInt(quantityInput.value, 10);
         const availableQuantity = parseInt(quantityInput.getAttribute("data-available-quantity"), 10);
-        console.log(quantity,"quantityy");
-        console.log(availableQuantity,"availablequantityy");
+       
         if (quantity === 1) {
           return;
         }
@@ -478,36 +464,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     updateTotalAmount();
 
-
-
-
-  function confirmRemoval(event,productId){
-    event.preventDefault();
-    
-
-    swal.fire({
-      title:'Are you sure?',
-      text:'You are about yo remove this item from your cart!',
-      icon:'warning',
-      showCancelButton:true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, remove it!'
-    }).then((result) =>{
-      if(result.isConfirmed) {
-        window.location.href = `/removefromcart/${productId}`
-      }
-    })
-  }
-
-  
   // const subTotal = document.getElementById('sub-total');
-  function applyCoupon() {
+   const applyCoupon = () => {
     const couponCode = $('#couponCodeInput').val()
     event.preventDefault();
     const subTotal =document.getElementById('sub-total').textContent
     const numericPart = parseFloat(subTotal.replace(/[^0-9.]/g, ''))
-    // console.log( subTotal.replace(/[^0-9.]/g, ''));
     console.log(numericPart,'subtotal');
     console.log(couponCode,"couponcode");
       console.log('here');
@@ -517,7 +479,7 @@ document.addEventListener("DOMContentLoaded", function() {
           method: 'POST',
           contentType: 'application/json',
           data: JSON.stringify({ couponCode,numericPart}),
-          success: function (response) {
+          success: (response) => {
             const flashMessageDiv = $('#flashMessage');
             flashMessageDiv.hide(); 
             
@@ -527,9 +489,11 @@ document.addEventListener("DOMContentLoaded", function() {
               
               Swal.fire({
               title: "Applied coupon!",
-              text: `Applied ${couponCode} couponcode`,
+              text: `Applied ${couponCode} couponcode `,
               icon: "success"
+              
               });
+
               const minAmount = document.getElementById('minAmount');
               minAmount.value = response.coupon.minimumPurchaseAmount;
               console.log(minAmount.value,"hiddenfield minamount value");
@@ -537,11 +501,14 @@ document.addEventListener("DOMContentLoaded", function() {
               const discountAmount = response.coupon.discountAmount
               const DiscountAmount = document.getElementById("discountAmountcell");
               DiscountAmount.value = (discountAmount.toFixed(2))
-              console.log(DiscountAmount.value,"consolling discount amount");
 
               DiscountAmount.style.display = 'block';
+              couponAreaContainer.load(window.location.href + ' #couponAreaContainer');
+
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
               updateTotalAmount()
-             
             }else{
               const DiscountAmount = document.getElementById("discountAmountcell");
               DiscountAmount.value = (0.00.toFixed(2))
@@ -560,7 +527,83 @@ document.addEventListener("DOMContentLoaded", function() {
           },
       });
   }
+
+  const removeCoupon = () =>{
+    const couponField = document.getElementById('couponCodeInput')
+    let couponcode = couponField.value
+    console.log("hai removecoupon");
+    $.ajax({
+      url: '/couponremoval', 
+      method: 'POST', 
+      contentType: 'application/json',
+      data:JSON.stringify({ couponcode }),
+      success:()=> {
+        // console.log("reached in the success");
+        Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: `Your ${couponcode} coupon is removed !`,
+        timer:2000,
+        });
+
+          couponAreaContainer.load(window.location.href + ' #couponAreaContainer');
+          setTimeout(() => {
+            window.location.reload();
+          },2000);
+        
+          
+          const totalAmountCell = document.getElementById("totalAmountCell");
+          const subTotal = document.getElementById("sub-total");
+          subTotal.textContent = `Rs ${totalAmount.toFixed(2)}`;
+          totalAmountCell.value = (totalAmount.toFixed(2))
+          const minAmount = document.getElementById('minAmount');
+          minAmount.value = '';
+          const DiscountAmount = document.getElementById('discountAmountcell')
+          DiscountAmount.value = (0.00.toFixed(2))
+          const coupon = document.getElementById('couponCodeInput')
+          coupon.value =""
+      },
+      error:()=>{
+
+      }
+    })
+  }
+
 })
+function showToast(){
+  Toastify({
+  text: "This is a toast",
+  duration: 3000,
+  newWindow: true,
+  close: true,
+  gravity: "center", // `top` or `bottom`
+  position: "center", // `left`, `center` or `right`
+  stopOnFocus: true, // Prevents dismissing of toast on hover
+  style: {
+    background: "red",
+  },
+  onClick: function(){} // Callback after click
+}).showToast();
+}
+
+async function confirmRemoval(productId){
+    event.preventDefault();
+    console.log("called")
+
+    swal.fire({
+      title:'Are you sure?',
+      text:'You are about yo remove this item from your cart!',
+      icon:'warning',
+      showCancelButton:true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, remove it!'
+    }).then((result) =>{
+      if(result.isConfirmed) {
+        window.location.href = `/removefromcart/${productId}`
+      }
+    })
+  }
 
 </script>
 

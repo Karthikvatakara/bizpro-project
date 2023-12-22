@@ -43,8 +43,8 @@
               <% for(let i=0; i< order.length; i++) { %>
                 <tr>
                   <td><%=(currentPage-1)*10+i+1 %></td>
-                  <td>#ORD<%= order[i].orderUuid %></td>
-                  <td><%= order[i].userId %></td>
+                  <td>#ORD-<%= order[i].orderUuid %></td>
+                  <td>#usr-<%= order[i].userId.userUuid %></td>
                   <td><%= moment(order[i].orderDate).format('lll') %> </td>
                   
                   <td>

@@ -15,7 +15,7 @@ const getadminorders = async(req,res) => {
     try{
         const page = parseInt(req.query.page) || 1; // Current page (default to 1)
         const perPage = parseInt(req.query.limit) || 10; 
-        const order = await ordermodel.find().limit(perPage).sort({_id:-1})
+        const order = await ordermodel.find().limit(perPage).sort({_id:-1}).populate('userId')
 
         const totalCount = await ordermodel.countDocuments();
         const returnedCount = await ordermodel.aggregate([{$match:{Status:'return requested'}},{$count:'count'}])
