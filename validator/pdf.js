@@ -8,9 +8,7 @@ module.exports ={
   downloadPdf : (req,res,orders,startDate,endDate,totalSales)=>{
     const template = fs.readFileSync('./validator/template.ejs', 'utf-8');
     
-    console.log(orders,"in the pdf");
-    console.log(totalSales,"totalsales");
-    const html = ejs.render(template, { orders, startDate, endDate, totalSales });
+    const html = ejs.render(template, { orders, startDate, endDate, totalSales});
     
     const pdfOptions = {  
         format: 'Letter',

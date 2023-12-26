@@ -311,12 +311,10 @@ const getDownloadSalesReport = async (req,res)=>{
 
       const orders = await ordermodel.find({
             PaymentStatus: 'paid',
-            OrderDate: { $gte: startDate, $lte: endDate } // Added condition for OrderDate
-        }).populate('products.productId');
+            OrderDate: { $gte: startDate, $lte: endDate } 
+        }).populate('products.productId').populate('userId');
 
 
-      console.log(startDate,"stardate of report");
-      console.log(endDate,"enddate of report");
       const totalSales = await ordermodel.aggregate([
         {
             $match: {
@@ -332,7 +330,6 @@ const getDownloadSalesReport = async (req,res)=>{
         }
     ]);
     
-console.log(totalSales,"iiiiiii");
   if(format == 'pdf'){
   const sum = totalSales.length > 0 ? totalSales[0].totalSales : 0;
   pdf.downloadPdf(req,res,orders,startDate,endDate,totalSales)

@@ -44,9 +44,9 @@
             <tbody>
             <% orders.forEach(order => { %>
                 <tr>
-                    <td>#usr-<%= order.userId %></td>
+                    <td>#usr-<%= order.userId.userUuid %></td>
                     <td>#ORD-<%= order.orderUuid %></td>
-                    <td><%= order.OrderDate %></td>
+                    <td><%= order.OrderDate.format('lll') %></td>
                     <td><%= order.TotalPrice.toFixed(2) %></td>
                     <td><%= order.PaymentMethod %></td>
                 </tr>

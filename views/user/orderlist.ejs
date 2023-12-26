@@ -214,9 +214,9 @@
         }
      
         
-    function downloadInvoice(orderId) {
-    document.getElementById('downloadButton').style.display ='none';
-
+    const downloadInvoice = (orderId) =>{
+    // document.getElementById('downloadButton').style.display ='none';
+      console.log("jjjj");
     let timerInterval;
 
     // Show SweetAlert with a timer
@@ -227,12 +227,17 @@
         timerProgressBar: true,
         allowOutsideClick: false,
         didOpen: () => {
-            Swal.showLoading();
-            const timer = Swal.getPopup().querySelector("b");
-            timerInterval = setInterval(() => {
-                timer.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}`;
-            }, 1000);
-        },
+        Swal.showLoading();
+        const timer = Swal.getPopup().querySelector("b");
+    
+    // Check if the timer element exists before updating its content
+        if (timer) {
+        timerInterval = setInterval(() => {
+            timer.textContent = `${Math.ceil(Swal.getTimerLeft() / 500)}`;
+        }, 1000);
+    }
+      },
+
         willClose: () => {
             clearInterval(timerInterval);
         }
@@ -255,6 +260,7 @@
             });
             // Redirect to download URL
             window.location.href = `/download/invoice/${orderId}`;
+            
         },
         error: (error) => {
             console.error("Ajax call error:", error);
@@ -272,9 +278,8 @@
             document.getElementById('downloadButton').style.display = 'block';
         }
     });
-}
+    }
 
-    // })
        </script>
      
 

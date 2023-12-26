@@ -29,7 +29,7 @@
     <h2>Wallet Transactions</h2>
   </div>
 
-  <% user.walletTransactions.forEach(transaction => { %>
+  <% user.walletTransactions.reverse().forEach(transaction => { %>
     <div class="row m-2 rounded shadow">
       <div class="card">
           <div class="card-body col-md-12 d-flex">
