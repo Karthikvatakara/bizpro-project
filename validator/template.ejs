@@ -46,7 +46,7 @@
                 <tr>
                     <td>#usr-<%= order.userId.userUuid %></td>
                     <td>#ORD-<%= order.orderUuid %></td>
-                    <td><%= order.OrderDate.format('lll') %></td>
+                    <td><%= new Date(order.OrderDate) %></td>
                     <td><%= order.TotalPrice.toFixed(2) %></td>
                     <td><%= order.PaymentMethod %></td>
                 </tr>

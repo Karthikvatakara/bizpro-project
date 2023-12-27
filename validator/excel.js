@@ -13,7 +13,13 @@ module.exports = {
 
     // Add data
     orders.forEach((order, rowIndex) => {
-      ws.cell(rowIndex + 2, 1).string('<%= order.userId.userUuid %>'); // Ensure userId is a string
+      if (order.userId && order.userId.userUuid) {
+        ws.cell(rowIndex + 2, 1).string(order.userId.userUuid.toString()); // Ensure userUuid is a string
+      } else {
+        // If not present, provide a default value or handle accordingly
+        ws.cell(rowIndex + 2, 1).string("");
+      }
+
       ws.cell(rowIndex + 2, 2).string(`#ORD-${order.orderUuid}`);
       
       // Format date
