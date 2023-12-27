@@ -10,6 +10,7 @@ const ordermodel = require('../model/ordermodel')
 const reviewModel = require('../model/reviewmodel')
 const invoice = require('../validator/easyInvoice')
 const pdf = require('../validator/pdf')
+const path = require('path')
 
 const getadminorders = async(req,res) => {
     try{
@@ -294,7 +295,10 @@ const downloadfile = async(req,res) =>{
     try{
     console.log("hai",req.params.id);
     const id = req.params.id
-    const filePath = `D:/clonee-bizpro/bizpro/validator/pdf/${id}.pdf`;
+    // const filePath = `D:/clonee-bizpro/bizpro/validator/pdf/${id}.pdf`;
+
+    const filePath = path.join(__dirname,'..',`validator/pdf/${id}.pdf`)
+    console.log(filePath, 'IT');
     res.download(filePath,`invoice.pdf`)
     }catch(error){
         console.log(error);
